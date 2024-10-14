@@ -5,14 +5,14 @@ from typing import Optional
 from PyQt6 import QtCore, QtGui, QtWidgets
 from media_forge.gui.custom_widgets import ribbon_bar, side_tabs, custom_button, line_edit_search, custom_panel, \
   split_pane_design
-# from media_forge.model.data_classes import workspace_project
+# from ligpargen_gui.model.data_classes import workspace_project
 from media_forge.model.preference import model_definitions
 from media_forge.model.qmodel import music_model
 from media_forge.model.util.gui_style import icons
 from media_forge.gui.main.forms.auto import auto_main_frame
 from media_forge.gui.custom_widgets import popup_dialog
-# from media_forge.model.util import exception
-# from media_forge.model.pymmm_logging import default_logging
+# from ligpargen_gui.model.util import exception
+# from ligpargen_gui.model.pymmm_logging import default_logging
 
 #logger = default_logging.setup_logger(__file__)
 

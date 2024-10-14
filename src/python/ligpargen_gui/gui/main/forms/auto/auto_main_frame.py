@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\src\python\media_forge\gui\main\forms\main_frame.ui'
+# Form implementation generated from reading ui file '.\src\python\ligpargen_gui\gui\main\forms\main_frame.ui'
 #
 # Created by: PyQt6 UI code generator 6.7.1
 #

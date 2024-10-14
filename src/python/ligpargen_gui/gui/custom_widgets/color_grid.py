@@ -4,8 +4,8 @@ import logging
 from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtWidgets import QWidget, QPushButton
 
-# from media_forge.model.pymmm_logging import default_logging
-# from media_forge.model.util import exception
+# from ligpargen_gui.model.pymmm_logging import default_logging
+# from ligpargen_gui.model.util import exception
 
 # logger = default_logging.setup_logger(__file__)
 

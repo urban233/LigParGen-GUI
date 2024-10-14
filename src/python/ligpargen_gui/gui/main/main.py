@@ -9,10 +9,10 @@ from media_forge.gui.main import main_frame, main_frame_controller
 from media_forge.model import tidal_auth_token
 from media_forge.model.util.gui_style import styles_utils
 
-#from media_forge.gui.main import main_frame_controller
+#from ligpargen_gui.gui.main import main_frame_controller
 
-# from media_forge.model.util.gui_style import styles_utils
-# from media_forge.extension.mv_wrappers.chimerax_wrapper import chimerax_pydd_client
+# from ligpargen_gui.model.util.gui_style import styles_utils
+# from ligpargen_gui.extension.mv_wrappers.chimerax_wrapper import chimerax_pydd_client
 import tidalapi
 from tidalapi import Track, Video
 from tidalapi.media import StreamManifest

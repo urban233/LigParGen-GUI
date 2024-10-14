@@ -3,8 +3,8 @@ import logging
 import os
 import pathlib
 from PyQt6 import QtWidgets
-# from media_forge.model.pymmm_logging import default_logging
-# from media_forge.model.util import exception
+# from ligpargen_gui.model.pymmm_logging import default_logging
+# from ligpargen_gui.model.util import exception
 from media_forge.model.preference import model_definitions
 
 __docformat__ = "google"
