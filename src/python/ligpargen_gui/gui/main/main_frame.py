@@ -3,14 +3,12 @@ import pathlib
 from typing import Optional
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-from media_forge.gui.custom_widgets import ribbon_bar, side_tabs, custom_button, line_edit_search, custom_panel, \
-  split_pane_design
+from ligpargen_gui.gui.custom_widgets import side_tabs, accordion
 # from ligpargen_gui.model.data_classes import workspace_project
-from media_forge.model.preference import model_definitions
-from media_forge.model.qmodel import music_model
-from media_forge.model.util.gui_style import icons
-from media_forge.gui.main.forms.auto import auto_main_frame
-from media_forge.gui.custom_widgets import popup_dialog
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.util.gui_style import icons
+from ligpargen_gui.gui.main.forms.auto import auto_main_frame
+from ligpargen_gui.gui.custom_widgets import popup_dialog
 # from ligpargen_gui.model.util import exception
 # from ligpargen_gui.model.pymmm_logging import default_logging
 
@@ -23,17 +21,13 @@ class MainFrame(QtWidgets.QMainWindow):
   dialogClosed = QtCore.pyqtSignal(tuple)
   """A signal indicating that the dialog is closed."""
 
-  def __init__(self, a_tidal_session) -> None:
+  def __init__(self) -> None:
     """Constructor."""
     super().__init__()
     # build ui object
     self.ui = auto_main_frame.Ui_MainWindow()
     self.ui.setupUi(self)
-    # Custom widgets
-    self.ribbon_bar = ribbon_bar.RibbonBar()
-    self.add_custom_ribbon()
-    self.btn_blank_project = custom_button.BigCardButton("Blank Space")
-    self.add_blank_project_button()
+
     shadow_effect = QtWidgets.QGraphicsDropShadowEffect()
     shadow_effect.setBlurRadius(8)
     shadow_effect.setOffset(3, 3)
@@ -48,58 +42,278 @@ class MainFrame(QtWidgets.QMainWindow):
       }
       """
     )
+    # <editor-fold desc="Structure input">
+    self.structure_input_layout = QtWidgets.QVBoxLayout()
+    self.structure_input_sub_layout = QtWidgets.QHBoxLayout()
+    self.lbl_structure_input = QtWidgets.QLabel("Input folder to structures")
+    self.txt_structure_input = QtWidgets.QLineEdit()
+    self.btn_structure_input = QtWidgets.QPushButton("...")
+    self.lbl_structure_input_status = QtWidgets.QLabel("Status")
+    self.structure_input_layout.addWidget(self.lbl_structure_input)
+    self.structure_input_sub_layout.addWidget(self.txt_structure_input)
+    self.structure_input_sub_layout.addWidget(self.btn_structure_input)
+    self.structure_input_layout.addLayout(self.structure_input_sub_layout)
+    self.structure_input_layout.addWidget(self.lbl_structure_input_status)
+    # </editor-fold>
 
-    self.music_model = music_model.MusicModel.from_a_directory(pathlib.Path(r"C:\Users\hannah\github_repos\MediaForge\test_files\music"))
+    # <editor-fold desc="Options">
+    self.container_options = QtWidgets.QWidget()
+    self.container_options_layout = QtWidgets.QVBoxLayout()
+    self.mol_optimization_iter_layout = QtWidgets.QHBoxLayout()
+    self.lbl_mol_optimization_iter = QtWidgets.QLabel("Select molecule optimization iterations")
+    self.cbox_mol_optimization_iter = QtWidgets.QComboBox()
+    self.mol_optimization_iter_layout.addWidget(self.lbl_mol_optimization_iter)
+    self.mol_optimization_iter_layout.addStretch()
+    self.mol_optimization_iter_layout.addWidget(self.cbox_mol_optimization_iter)
+    self.container_options_layout.addLayout(self.mol_optimization_iter_layout)
+    self.charge_model_layout = QtWidgets.QHBoxLayout()
+    self.lbl_charge_model = QtWidgets.QLabel("Select charge model")
+    self.cbox_charge_model = QtWidgets.QComboBox()
+    self.charge_model_layout.addWidget(self.lbl_charge_model)
+    self.charge_model_layout.addStretch()
+    self.charge_model_layout.addWidget(self.cbox_charge_model)
+    self.container_options_layout.addLayout(self.charge_model_layout)
+    self.molecule_charge_layout = QtWidgets.QHBoxLayout()
+    self.lbl_molecule_charge = QtWidgets.QLabel("Select molecule charge")
+    self.cbox_molecule_charge = QtWidgets.QComboBox()
+    self.molecule_charge_layout.addWidget(self.lbl_molecule_charge)
+    self.molecule_charge_layout.addStretch()
+    self.molecule_charge_layout.addWidget(self.cbox_molecule_charge)
+    self.container_options_layout.addLayout(self.molecule_charge_layout)
+    self.container_options_layout.addStretch()
+    self.container_options.setLayout(self.container_options_layout)
 
-    self.list_widget = QtWidgets.QWidget()
-    tmp_list_layout = QtWidgets.QVBoxLayout()
-    self.list_view = QtWidgets.QListView()
-    self.list_view.setModel(self.music_model.get_album_artist_model())
-    self.list_label = QtWidgets.QLabel("Album Artist")
-    tmp_list_layout.addWidget(self.list_label)
-    tmp_list_layout.addWidget(self.list_view)
-    self.list_widget.setLayout(tmp_list_layout)
-    self.list_widget.setMaximumWidth(275)
-
-    self.table_widget = QtWidgets.QWidget()
-    tmp_table_layout = QtWidgets.QVBoxLayout()
-    self.table_view = QtWidgets.QTableView()
-    self.table_view.setModel(self.music_model)
-    self.table_view.resizeColumnsToContents()
-    header = self.table_view.horizontalHeader()
-    header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
-    # Set the resize mode for each column
-    header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-    header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
-    header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.Stretch)
-    self.table_label = QtWidgets.QLabel("Tracks")
-    tmp_table_layout.addWidget(self.table_label)
-    tmp_table_layout.addWidget(self.table_view)
-    self.table_widget.setLayout(tmp_table_layout)
-
-    self.side_panel_search_tidal = custom_panel.SearchTidal(a_tidal_session)
-    self.side_panel_running_jobs = custom_panel.RunningJobsPanel()
-    self.side_panel_completed_jobs = custom_panel.CompletedJobsPanel()
-
-    self.side_panel_stacked_widget = QtWidgets.QStackedWidget()
-    self.side_panel_stacked_widget.addWidget(self.side_panel_search_tidal)
-    self.side_panel_stacked_widget.addWidget(self.side_panel_running_jobs)
-    self.side_panel_stacked_widget.addWidget(self.side_panel_completed_jobs)
-
-    self.bottom_panel = custom_panel.CustomBottomPanel("Bottom Panel Test")
-
-    self.split_pane = split_pane_design.SplitPaneDesign(
-      [self.list_widget, self.table_widget],
-      self.side_panel_stacked_widget,
-      self.bottom_panel
+    self.accordion_section_options = accordion.AccordionSection(
+      "Options", self.container_options
     )
-    self.ui.horizontalLayout.addWidget(self.split_pane)
-    self.split_pane.hide_bottom_panel()
+    # </editor-fold>
+
+    """Results generated by ligpargen (x is a placeholder for a molecule name)
+    x.charmm.pdb
+    x.charmm.prm
+    x.charmm.rtf
+    x.desmond.cms
+    x.gmx.gro
+    x.gmx.itp
+    x.lammps.lmp
+    x.openmm.pdb
+    x.openmm.xml
+    x.pqr
+    x.q.lib
+    x.q.pdb
+    x.q.prm
+    x.tinker.key
+    x.tinker.xyz
+    x.xplor.param
+    x.xplor.top
+    x.z
+    x-debug.pdb
+    """
+    self.container_results = QtWidgets.QWidget()
+    self.container_results_layout = QtWidgets.QVBoxLayout()
+    self.container_results_layout_first_row = QtWidgets.QHBoxLayout()
+    self.container_results_layout_second_row = QtWidgets.QHBoxLayout()
+    self.container_results_layout_third_row = QtWidgets.QHBoxLayout()
+
+    # <editor-fold desc="APBS">
+    self.apbs_layout = QtWidgets.QVBoxLayout()
+    self.cb_apbs = QtWidgets.QCheckBox("APBS")
+    self.apbs_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_apbs_pqr = QtWidgets.QCheckBox(".pqr")
+    self.apbs_sub_layout.addWidget(self.cb_apbs_pqr)
+    self.apbs_sub_layout.addStretch()
+    self.apbs_layout.addWidget(self.cb_apbs)
+    self.apbs_layout.addLayout(self.apbs_sub_layout)
+    self.container_results_layout_first_row.addLayout(self.apbs_layout)
+    # </editor-fold>
+
+    # <editor-fold desc="CHARMM">
+    self.charmm_layout = QtWidgets.QVBoxLayout()
+    self.cb_charmm = QtWidgets.QCheckBox("CHARMM")
+    self.charmm_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_charmm_pdb = QtWidgets.QCheckBox(".pdb")
+    self.cb_charmm_prm = QtWidgets.QCheckBox(".prm")
+    self.cb_charmm_rtf = QtWidgets.QCheckBox(".rtf")
+    self.charmm_sub_layout.addWidget(self.cb_charmm_pdb)
+    self.charmm_sub_layout.addWidget(self.cb_charmm_prm)
+    self.charmm_sub_layout.addWidget(self.cb_charmm_rtf)
+    self.charmm_sub_layout.addStretch()
+    self.charmm_layout.addWidget(self.cb_charmm)
+    self.charmm_layout.addLayout(self.charmm_sub_layout)
+    self.container_results_layout_first_row.addLayout(self.charmm_layout)
+    # </editor-fold>
+
+    # <editor-fold desc="Desmond">
+    self.desmond_layout = QtWidgets.QVBoxLayout()
+    self.cb_desmond = QtWidgets.QCheckBox("Desmond")
+    self.desmond_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_desmond_cms = QtWidgets.QCheckBox(".cms")
+    self.desmond_sub_layout.addWidget(self.cb_desmond_cms)
+    self.desmond_sub_layout.addStretch()
+    self.desmond_layout.addWidget(self.cb_desmond)
+    self.desmond_layout.addLayout(self.desmond_sub_layout)
+    self.container_results_layout_first_row.addLayout(self.desmond_layout)
+    # </editor-fold>
+
+    # <editor-fold desc="Gromacs">
+    self.gromacs_layout = QtWidgets.QVBoxLayout()
+    self.cb_gromacs = QtWidgets.QCheckBox("GROMACS")
+    self.gromacs_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_gromacs_gro = QtWidgets.QCheckBox(".gro")
+    self.cb_gromacs_itp = QtWidgets.QCheckBox(".itp")
+    self.gromacs_sub_layout.addWidget(self.cb_gromacs_gro)
+    self.gromacs_sub_layout.addWidget(self.cb_gromacs_itp)
+    self.gromacs_sub_layout.addStretch()
+    self.gromacs_layout.addWidget(self.cb_gromacs)
+    self.gromacs_layout.addLayout(self.gromacs_sub_layout)
+    self.container_results_layout_second_row.addLayout(self.gromacs_layout)
+    # </editor-fold>
+
+    # <editor-fold desc="LAMMPS">
+    self.lammps_layout = QtWidgets.QVBoxLayout()
+    self.cb_lammps = QtWidgets.QCheckBox("LAMMPS")
+    self.lammps_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_lammps_lmp = QtWidgets.QCheckBox(".lmp")
+    self.lammps_sub_layout.addWidget(self.cb_lammps_lmp)
+    self.lammps_sub_layout.addStretch()
+    self.lammps_layout.addWidget(self.cb_lammps)
+    self.lammps_layout.addLayout(self.lammps_sub_layout)
+    self.container_results_layout_second_row.addLayout(self.lammps_layout)
+    # </editor-fold>
+
+    # <editor-fold desc="OpenMM">
+    self.openmm_layout = QtWidgets.QVBoxLayout()
+    self.cb_openmm = QtWidgets.QCheckBox("OpenMM")
+    self.openmm_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_openmm_pdb = QtWidgets.QCheckBox(".pdb")
+    self.cb_openmm_xml = QtWidgets.QCheckBox(".xml")
+    self.openmm_sub_layout.addWidget(self.cb_openmm_pdb)
+    self.openmm_sub_layout.addWidget(self.cb_openmm_xml)
+    self.openmm_sub_layout.addStretch()
+    self.openmm_layout.addWidget(self.cb_openmm)
+    self.openmm_layout.addLayout(self.openmm_sub_layout)
+    self.container_results_layout_second_row.addLayout(self.openmm_layout)
+    # </editor-fold>
+
+    # <editor-fold desc="Q">
+    self.q_layout = QtWidgets.QVBoxLayout()
+    self.cb_q = QtWidgets.QCheckBox("Q")
+    self.q_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_q_lib = QtWidgets.QCheckBox(".lib")
+    self.cb_q_pdb = QtWidgets.QCheckBox(".pdb")
+    self.cb_q_prm = QtWidgets.QCheckBox(".prm")
+    self.q_sub_layout.addWidget(self.cb_q_lib)
+    self.q_sub_layout.addWidget(self.cb_q_pdb)
+    self.q_sub_layout.addWidget(self.cb_q_prm)
+    self.q_sub_layout.addStretch()
+    self.q_layout.addWidget(self.cb_q)
+    self.q_layout.addLayout(self.q_sub_layout)
+    self.container_results_layout_third_row.addLayout(self.q_layout)
+    # </editor-fold>
+
+    # <editor-fold desc="Tinker">
+    self.tinker_layout = QtWidgets.QVBoxLayout()
+    self.cb_tinker = QtWidgets.QCheckBox("TINKER")
+    self.tinker_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_tinker_xyz = QtWidgets.QCheckBox(".xyz")
+    self.cb_tinker_key = QtWidgets.QCheckBox(".key")
+    self.tinker_sub_layout.addWidget(self.cb_tinker_xyz)
+    self.tinker_sub_layout.addWidget(self.cb_tinker_key)
+    self.tinker_sub_layout.addStretch()
+    self.tinker_layout.addWidget(self.cb_tinker)
+    self.tinker_layout.addLayout(self.tinker_sub_layout)
+    self.container_results_layout_third_row.addLayout(self.tinker_layout)
+    # </editor-fold>
+
+    # <editor-fold desc="X-PLOR">
+    self.xplor_layout = QtWidgets.QVBoxLayout()
+    self.cb_xplor = QtWidgets.QCheckBox("X-PLOR")
+    self.xplor_sub_layout = QtWidgets.QHBoxLayout()
+    self.cb_xplor_param = QtWidgets.QCheckBox(".param")
+    self.cb_xplor_top = QtWidgets.QCheckBox(".top")
+    self.xplor_sub_layout.addWidget(self.cb_xplor_param)
+    self.xplor_sub_layout.addWidget(self.cb_xplor_top)
+    self.xplor_sub_layout.addStretch()
+    self.xplor_layout.addWidget(self.cb_xplor)
+    self.xplor_layout.addLayout(self.xplor_sub_layout)
+    self.container_results_layout_third_row.addLayout(self.xplor_layout)
+    # </editor-fold>
+
+    self.container_results_layout.addLayout(self.container_results_layout_first_row)
+    self.container_results_layout.addLayout(self.container_results_layout_second_row)
+    self.container_results_layout.addLayout(self.container_results_layout_third_row)
+    self.accordion_section_results = accordion.AccordionSection(
+      "Results", self.container_results
+    )
+    self.container_results.setLayout(self.container_results_layout)
+
+    self.accordion = accordion.AccordionWidget(
+      [self.accordion_section_options, self.accordion_section_results]
+    )
+
+    self.ui.main_frame_layout.addLayout(self.structure_input_layout)
+    self.ui.main_frame_layout.addWidget(self.accordion)
+    self.ui.main_frame_layout.addStretch()
+
+
+
+
+    # # Custom widgets
+    # self.ribbon_bar = ribbon_bar.RibbonBar()
+    # self.add_custom_ribbon()
+    # self.btn_blank_project = custom_button.BigCardButton("Blank Space")
+    # self.add_blank_project_button()
+    #
+    #
+    # self.list_widget = QtWidgets.QWidget()
+    # tmp_list_layout = QtWidgets.QVBoxLayout()
+    # self.list_view = QtWidgets.QListView()
+    # self.list_view.setModel(self.music_model.get_album_artist_model())
+    # self.list_label = QtWidgets.QLabel("Album Artist")
+    # tmp_list_layout.addWidget(self.list_label)
+    # tmp_list_layout.addWidget(self.list_view)
+    # self.list_widget.setLayout(tmp_list_layout)
+    # self.list_widget.setMaximumWidth(275)
+    #
+    # self.table_widget = QtWidgets.QWidget()
+    # tmp_table_layout = QtWidgets.QVBoxLayout()
+    # self.table_view = QtWidgets.QTableView()
+    # self.table_view.setModel(self.music_model)
+    # self.table_view.resizeColumnsToContents()
+    # header = self.table_view.horizontalHeader()
+    # header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
+    # # Set the resize mode for each column
+    # header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+    # header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
+    # header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.Stretch)
+    # self.table_label = QtWidgets.QLabel("Tracks")
+    # tmp_table_layout.addWidget(self.table_label)
+    # tmp_table_layout.addWidget(self.table_view)
+    # self.table_widget.setLayout(tmp_table_layout)
+    #
+    # #self.side_panel_search_tidal = custom_panel.SearchTidal(a_tidal_session)
+    # self.side_panel_running_jobs = custom_panel.RunningJobsPanel()
+    # self.side_panel_completed_jobs = custom_panel.CompletedJobsPanel()
+    #
+    # self.side_panel_stacked_widget = QtWidgets.QStackedWidget()
+    # #self.side_panel_stacked_widget.addWidget(self.side_panel_search_tidal)
+    # self.side_panel_stacked_widget.addWidget(self.side_panel_running_jobs)
+    # self.side_panel_stacked_widget.addWidget(self.side_panel_completed_jobs)
+    #
+    # self.bottom_panel = custom_panel.CustomBottomPanel("Bottom Panel Test")
+    #
+    # self.split_pane = split_pane_design.SplitPaneDesign(
+    #   [self.list_widget, self.table_widget],
+    #   self.side_panel_stacked_widget,
+    #   self.bottom_panel
+    # )
+    # self.ui.horizontalLayout.addWidget(self.split_pane)
+    # self.split_pane.hide_bottom_panel()
     # Init gui
-    self.init_ui()
-    self.line_edit_search = line_edit_search.LineEditSearch(self)
-    self.ui.verticalLayout_55.insertWidget(0, self.line_edit_search)
-    self.ui.stackedWidget.setCurrentIndex(1)
+    #self.init_ui()
+    #self.line_edit_search = line_edit_search.LineEditSearch(self)
+    #self.ui.verticalLayout_55.insertWidget(0, self.line_edit_search)
+    #self.ui.stackedWidget.setCurrentIndex(1)
 
   def set_tab_texts_for_project_page(self,
                                      tab_texts: list[tuple[str, Optional["model_definitions.IconsEnum"]]]) -> None:

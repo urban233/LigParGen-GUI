@@ -3,8 +3,8 @@ from typing import Callable, Union
 import tidalapi
 from PyQt6 import QtWidgets
 
-from media_forge.gui.dialog import dialog_storage_variables
-from media_forge.model.qmodel import search_model
+from ligpargen_gui.gui.dialog import dialog_storage_variables
+from ligpargen_gui.model.qmodel import search_model
 
 
 class SearchTableTidal(QtWidgets.QWidget):

@@ -3,15 +3,15 @@ import pathlib
 
 from tea.concurrent import task_result, action, task_manager, task_scheduler
 
-from media_forge.gui.control import create_storage_space_controller
-from media_forge.gui.dialog import dialog_create_storage_space, dialog_storage_variables
-from media_forge.gui.main import main_frame
-from media_forge.model.central_objects import storage_space
-from media_forge.model.database import databases_manager, database_handler
-from media_forge.model.preference import model_definitions
-from media_forge.model.pymmm_logging import default_logging
-from media_forge.model.qmodel import storage_space_model
-from media_forge.model.util import exception
+from ligpargen_gui.gui.control import create_storage_space_controller
+from ligpargen_gui.gui.dialog import dialog_create_storage_space, dialog_storage_variables
+from ligpargen_gui.gui.main import main_frame
+from ligpargen_gui.model.central_objects import storage_space
+from ligpargen_gui.model.database import databases_manager, database_handler
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.pymmm_logging import default_logging
+from ligpargen_gui.model.qmodel import storage_space_model
+from ligpargen_gui.model.util import exception
 
 logger = default_logging.setup_logger(__file__)
 

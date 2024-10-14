@@ -6,11 +6,11 @@ from typing import Callable
 from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal
 from PyQt6 import QtWidgets
-from media_forge.model.util import exception
-from media_forge.model.pymmm_logging import default_logging
+from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.pymmm_logging import default_logging
 
 if TYPE_CHECKING:
-  from media_forge.internal.data_structures.data_classes import job_summary
+  from ligpargen_gui.internal.data_structures.data_classes import job_summary
 
 logger = default_logging.setup_logger(__file__)
 __docformat__ = "google"

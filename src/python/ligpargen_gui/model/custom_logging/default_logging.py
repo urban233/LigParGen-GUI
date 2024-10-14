@@ -1,7 +1,7 @@
 import logging
 import pathlib
 from typing import Optional
-from media_forge.model.preference import model_definitions
+from ligpargen_gui.model.preference import model_definitions
 
 __docformat__ = "google"
 

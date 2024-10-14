@@ -25,15 +25,15 @@ from PyQt6 import QtWidgets
 from PyQt6 import QtGui
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt
-from media_forge.gui.custom_widgets.forms.auto import auto_job_entry_widget, auto_job_notification_widget
-from media_forge.model.thread import custom_signals
-from media_forge.model.preference import model_definitions
-from media_forge.model.util import exception
-from media_forge.model.pymmm_logging import default_logging
-from media_forge.model.util.gui_style import icons
+from ligpargen_gui.gui.custom_widgets.forms.auto import auto_job_entry_widget, auto_job_notification_widget
+from ligpargen_gui.model.thread import custom_signals
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.pymmm_logging import default_logging
+from ligpargen_gui.model.util.gui_style import icons
 
 if TYPE_CHECKING:
-  from media_forge.internal.data_structures.data_classes import job_summary
+  from ligpargen_gui.internal.data_structures.data_classes import job_summary
 
 logger = default_logging.setup_logger(__file__)
 __docformat__ = "google"

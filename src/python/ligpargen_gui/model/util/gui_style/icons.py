@@ -1,11 +1,11 @@
 import logging
 import pathlib
 from PyQt6 import QtGui, QtCore, QtWidgets
-from media_forge.model.preference import model_definitions
-from media_forge.model.util import exception
-from media_forge.model.pymmm_logging import default_logging
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.util import exception
+#from ligpargen_gui.model.pymmm_logging import default_logging
 
-logger = default_logging.setup_logger(__file__)
+#logger = default_logging.setup_logger(__file__)
 
 
 # Define the root path for icons

@@ -3,8 +3,8 @@ from typing import Optional
 from PyQt6 import QtWidgets
 from PyQt6 import QtGui
 
-from media_forge.model.preference import model_definitions
-from media_forge.model.util.gui_style import icons
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.util.gui_style import icons
 
 
 class InlineMenu(QtWidgets.QWidget):

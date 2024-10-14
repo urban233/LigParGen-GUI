@@ -1,8 +1,8 @@
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QWidget, QFrame
 
-from media_forge.model.preference import model_definitions
-from media_forge.model.util.gui_style import icons
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.util.gui_style import icons
 
 
 class AccordionSection(QWidget):

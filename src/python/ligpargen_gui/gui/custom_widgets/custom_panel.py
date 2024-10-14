@@ -3,10 +3,10 @@ import requests
 from PyQt6 import QtWidgets, QtGui, QtCore
 from tidalapi import media
 
-from media_forge.gui.custom_widgets import accordion, custom_accordion_sections
-from media_forge.model.preference import model_definitions
-from media_forge.model.qmodel import search_model
-from media_forge.model.util.gui_style import icons
+from ligpargen_gui.gui.custom_widgets import accordion, custom_accordion_sections
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.qmodel import search_model
+from ligpargen_gui.model.util.gui_style import icons
 
 
 class CustomSidePanel(QtWidgets.QWidget):

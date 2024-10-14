@@ -4,10 +4,10 @@ from typing import Union
 from PyQt6 import QtWidgets, QtGui
 from PyQt6 import QtCore
 
-from media_forge.gui.custom_widgets import custom_button
+from ligpargen_gui.gui.custom_widgets import custom_button
 # from ligpargen_gui.model.qmodel import project_model
 # from ligpargen_gui.model.data_classes import workspace_project
-from media_forge.model.preference import model_definitions
+from ligpargen_gui.model.preference import model_definitions
 
 
 class LineEditSearch(QtWidgets.QLineEdit):
