@@ -5,7 +5,7 @@ import pathlib
 from PyQt6 import QtWidgets
 # from ligpargen_gui.model.pymmm_logging import default_logging
 # from ligpargen_gui.model.util import exception
-from media_forge.model.preference import model_definitions
+from ligpargen_gui.model.preference import model_definitions
 
 __docformat__ = "google"
 
@@ -83,7 +83,7 @@ def set_stylesheet(self) -> None:  # noqa: ANN001
   #logger.info("Using the 'in-project' stylesheet.")
   with open(
           pathlib.Path(
-            f"{model_definitions.ModelDefinitions.PROGRAM_SRC_PATH}/python/media_forge/model/util/gui_style/style.css"
+            f"{model_definitions.ModelDefinitions.PROGRAM_SRC_PATH}/python/ligpargen_gui/model/util/gui_style/style.css"
           ),
           "r",
           encoding="utf-8",
