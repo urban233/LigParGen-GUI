@@ -29,7 +29,7 @@ from ligpargen_gui.gui.custom_widgets.forms.auto import auto_job_entry_widget, a
 from ligpargen_gui.model.thread import custom_signals
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util import exception
-from ligpargen_gui.model.pymmm_logging import default_logging
+from ligpargen_gui.model.custom_logging import default_logging
 from ligpargen_gui.model.util.gui_style import icons
 
 if TYPE_CHECKING:

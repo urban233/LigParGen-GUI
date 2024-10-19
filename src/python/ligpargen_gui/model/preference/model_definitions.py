@@ -15,7 +15,6 @@ class ModelDefinitions:
   PROGRAM_SRC_PATH = pathlib.Path(
     __file__).parent.parent.parent.parent.parent  # TODO: Must be switched to if ready for first tests f"{PROGRAM_BIN_ROOT_PATH}\\src"
   """Path to the root of the program sources."""
-  print(PROGRAM_SRC_PATH)
   DEFAULT_WORKSPACE_PATH: pathlib.Path = pathlib.Path(
     f"{os.path.expanduser('~')}/.mediaforge/default"
   )
@@ -38,7 +37,6 @@ class ModelDefinitions:
   ASSETS_PATH = pathlib.Path(f"{PROGRAM_ROOT_PATH}/assets")
   """Path to the assets folder"""
   ICONS_PATH = pathlib.Path(f"{ASSETS_PATH}/icons")
-  print(ICONS_PATH)
   """Path to the icons folder"""
   STATUS_MESSAGE_TIMEOUT = 5000  # value in msec
   """The standard status bar message timeout"""
@@ -77,29 +75,11 @@ class TypesEnum(enum.StrEnum):
 # </editor-fold>
 
 
-class StorageSpaceType(enum.StrEnum):
-  """Enumeration for storing possible storage spaces"""
-  MUSIC = "Music"
-  VIDEO = "Video"
-  IMAGE = "Image"
-
-
-class StorageVariableType(enum.StrEnum):
-  """Enumeration for storing possible storage variables"""
-  USER = "User"
-  HI_RES = "HiRes"
-  CD_QUALITY = "CD-Quality"
-  MP3 = "MP3"
-
-
-class ComponentsEnum(enum.IntEnum):
-  """Enumeration for storing all components."""
-  CREATE_PROJECT = 1001
-  OPEN_PROJECT = 1002
-
-  IMPORT_SEQUENCE = 1101
-  IMPORT_PROTEIN = 1201
-  IMPORT_LIGAND = 1301
+class LigParGenOptions:
+  """Class that contains all ligpargen options of the webserver"""
+  MOLECULE_OPTIMIZATION_ITERATIONS = ["0", "1", "2", "3"]
+  CHARGE_MODEL = ["CM1A-LBCC", "CM1A"]
+  MOLECULE_CHARGE = ["0", "-1", "-2", "+1", "+2"]
 
 
 class IconsEnum(enum.StrEnum):
@@ -171,6 +151,7 @@ class IconsEnum(enum.StrEnum):
   YOUTUBE = "YOUTUBE"
   TRANSFER = "SYNC_ALT"
   CONVERT = "RULE_SETTINGS"
+  DROP_DOWN_ARROW = "KEYBOARD_ARROW_DOWN_GREY"
 
 
 class JobStatus(enum.Enum):

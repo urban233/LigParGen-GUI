@@ -7,7 +7,7 @@ from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSignal
 from PyQt6 import QtWidgets
 from ligpargen_gui.model.util import exception
-from ligpargen_gui.model.pymmm_logging import default_logging
+from ligpargen_gui.model.custom_logging import default_logging
 
 if TYPE_CHECKING:
   from ligpargen_gui.internal.data_structures.data_classes import job_summary

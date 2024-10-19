@@ -3,9 +3,9 @@ import pathlib
 from PyQt6 import QtGui, QtCore, QtWidgets
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util import exception
-#from ligpargen_gui.model.pymmm_logging import default_logging
+from ligpargen_gui.model.custom_logging import default_logging
 
-#logger = default_logging.setup_logger(__file__)
+logger = default_logging.setup_logger(__file__)
 
 
 # Define the root path for icons
@@ -80,6 +80,7 @@ ICON_PATHS = {
   "YOUTUBE": pathlib.Path(f"{_icons_root_path}/youtube_64.png"),
   "SYNC_ALT": pathlib.Path(f"{_icons_root_path}/sync_alt_w200.svg"),
   "RULE_SETTINGS": pathlib.Path(f"{_icons_root_path}/rule_settings_w200.svg"),
+  "KEYBOARD_ARROW_DOWN_GREY": pathlib.Path(f"{_icons_root_path}/keyboard_arrow_down_w200_32px.png"),
 }
 
 
