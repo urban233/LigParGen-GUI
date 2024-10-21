@@ -1,3 +1,5 @@
+import subprocess
+
 from PyQt6 import QtCore, QtGui, QtWidgets
 from ligpargen_gui.gui.main.forms.auto import auto_test_frame
 
@@ -14,8 +16,7 @@ class TestFrame(QtWidgets.QMainWindow):
     # build ui object
     self.ui = auto_test_frame.Ui_MainWindow()
     self.ui.setupUi(self)
-    self.ui.btn_test.clicked.connect(self.placeholder)
+    self.ui.btn_test.clicked.connect(self.start_server)
 
-  def placeholder(self) -> None:
-    """This method functions as dummy and can be substituted by a 'real' method."""
-    print("Hello there. - Obi-Wan")
+  def start_server(self) -> None:
+    subprocess.run(["wsl", "-d", "alma9LigParGen0205", "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"])
