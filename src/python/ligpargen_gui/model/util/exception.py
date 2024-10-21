@@ -81,40 +81,8 @@ class NotMainThreadError(Exception):
     )
 
 
-class PyMOLCommandFailedError(Exception):
-  """Class for a pymol command failed exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-    
-
 class DirectoryNotFoundError(Exception):
   """Class for a directory does not exist exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class FastaFilesNotFoundError(Exception):
-  """Class for an empty WSL fasta directory exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class FastaFilesNotCreatedError(Exception):
-  """Class for an empty WSL fasta directory exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class PredictionEndedWithError(Exception):
-  """Class for an empty WSL fasta directory exception type."""
 
   def __init__(self, message: str) -> None:
     """Constructor."""
@@ -145,78 +113,6 @@ class UnableToLoadPdbFileError(Exception):
     super().__init__(message)
 
 
-class UnableToLoadProteinError(Exception):
-  """Class for an unable to load a protein exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToLoadProteinPairError(Exception):
-  """Class for an unable to load a protein pair exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToAddProteinPairError(Exception):
-  """Class for an unable to add a protein pair exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToColorProteinPairError(Exception):
-  """Class for an unable to color a protein pair exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToReinitializePymolSessionError(Exception):
-  """Class for an unable to reinitialize the pymol session exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToDoAnalysisError(Exception):
-  """Class for an unable to do analysis exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToTakeImageError(Exception):
-  """Class for an unable to do analysis exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToSetImageError(Exception):
-  """Class for an unable to do analysis exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToSafeSessionError(Exception):
-  """Class for an unable to load a protein pair exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
 class SubprocessExecutionError(Exception):
   """Class for a subprocess execution exception type."""
 
@@ -227,38 +123,6 @@ class SubprocessExecutionError(Exception):
 
 class Wsl2PreparationFailedError(Exception):
   """Class for a failed wsl2 preparation exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToCreateAnalysisRunInfoError(Exception):
-  """Class for an unable to create analysis run info exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToCreateProteinPairError(Exception):
-  """Class for an unable to create a protein pair object exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToCreateDistanceAnalysisObjectError(Exception):
-  """Class for an unable to create a distance analysis object exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToTransformDataForAnalysisError(Exception):
-  """Class for an unable to transform data for analysis exception type."""
 
   def __init__(self, message: str) -> None:
     """Constructor."""
@@ -291,46 +155,6 @@ class UnableToCreateDirectoryError(Exception):
 
 class UnableToCopyFileError(Exception):
   """Class for an unable to copy a file exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToSetupAnalysisError(Exception):
-  """Class for an unable to set up analysis exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class UnableToFindColabfoldModelError(Exception):
-  """Class for an unable to find colabfold model exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class DistanceAnalysisFailedError(Exception):
-  """Class for a distance analysis failed exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class ProteinNotFoundInCurrentProjectError(Exception):
-  """Class for protein not found in current project exception type."""
-
-  def __init__(self, message: str) -> None:
-    """Constructor."""
-    super().__init__(message)
-
-
-class ProteinNotFoundInPyMOLSession(Exception):
-  """Class for protein not found in current pymol session exception type."""
 
   def __init__(self, message: str) -> None:
     """Constructor."""

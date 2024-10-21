@@ -7,8 +7,10 @@ from ligpargen_gui.gui.main.forms.auto import auto_test_frame
 class TestFrame(QtWidgets.QMainWindow):
   """Test frame class."""
 
+  # <editor-fold desc="Class attributes">
   dialogClosed = QtCore.pyqtSignal(tuple)
   """A signal indicating that the dialog is closed."""
+  # </editor-fold>
 
   def __init__(self) -> None:
     """Constructor."""

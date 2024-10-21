@@ -3,13 +3,13 @@ import logging
 import os
 import pathlib
 from PyQt6 import QtWidgets
-# from ligpargen_gui.model.pymmm_logging import default_logging
+from ligpargen_gui.model.custom_logging import default_logging
 # from ligpargen_gui.model.util import exception
 from ligpargen_gui.model.preference import model_definitions
 
 __docformat__ = "google"
 
-#logger = default_logging.setup_logger(__file__)
+logger = default_logging.setup_logger(__file__)
 
 
 def color_bottom_frame_button(button: QtWidgets.QPushButton) -> None:

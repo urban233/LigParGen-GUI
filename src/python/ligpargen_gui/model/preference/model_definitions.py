@@ -15,7 +15,6 @@ class ModelDefinitions:
   PROGRAM_SRC_PATH = pathlib.Path(
     __file__).parent.parent.parent.parent.parent  # TODO: Must be switched to if ready for first tests f"{PROGRAM_BIN_ROOT_PATH}\\src"
   """Path to the root of the program sources."""
-  print(PROGRAM_SRC_PATH)
   DEFAULT_WORKSPACE_PATH: pathlib.Path = pathlib.Path(
     f"{os.path.expanduser('~')}/.mediaforge/default"
   )
@@ -38,12 +37,18 @@ class ModelDefinitions:
   ASSETS_PATH = pathlib.Path(f"{PROGRAM_ROOT_PATH}/assets")
   """Path to the assets folder"""
   ICONS_PATH = pathlib.Path(f"{ASSETS_PATH}/icons")
-  print(ICONS_PATH)
   """Path to the icons folder"""
   STATUS_MESSAGE_TIMEOUT = 5000  # value in msec
   """The standard status bar message timeout"""
 
-# <editor-fold desc="Model roles">
+
+class LigParGenOptions:
+  """Class that contains all ligpargen options of the webserver"""
+  MOLECULE_OPTIMIZATION_ITERATIONS = ["0", "1", "2", "3"]
+  CHARGE_MODEL = ["CM1A-LBCC", "CM1A"]
+  MOLECULE_CHARGE = ["0", "-1", "-2", "+1", "+2"]
+
+
 class RolesEnum(enum.IntEnum):
   """Enumeration for storing possible model roles."""
   OBJECT_ROLE = 1003
@@ -54,52 +59,6 @@ class RolesEnum(enum.IntEnum):
   """Model role to store a filepath."""
   CHAIN_COLOR_ROLE = 1006
   """Model role to store a chain color."""
-# </editor-fold>
-
-
-# <editor-fold desc="Model types">
-class TypesEnum(enum.StrEnum):
-  """Enumeration for storing possible model types."""
-  PROJECT_TYPE = "project"
-  """Model type for storing a project."""
-  SEQUENCE_TYPE = "sequence"
-  """Model type for storing a sequence."""
-  TRACK_TYPE = "track"
-  """Model type for storing a track."""
-  CHAIN_TYPE = "chain"
-  """Model type for storing a chain."""
-  RESIDUE_TYPE = "residue"
-  """Model type for storing a residue."""
-  ATOM_TYPE = "atom"
-  """Model type for storing an atom."""
-  LIGAND_TYPE = "ligand"
-  """Model type for storing an ligand."""
-# </editor-fold>
-
-
-class StorageSpaceType(enum.StrEnum):
-  """Enumeration for storing possible storage spaces"""
-  MUSIC = "Music"
-  VIDEO = "Video"
-  IMAGE = "Image"
-
-
-class StorageVariableType(enum.StrEnum):
-  """Enumeration for storing possible storage variables"""
-  USER = "User"
-  HI_RES = "HiRes"
-  CD_QUALITY = "CD-Quality"
-  MP3 = "MP3"
-
-
-class ComponentsEnum(enum.IntEnum):
-  """Enumeration for storing all components."""
-  CREATE_PROJECT = 1001
-  OPEN_PROJECT = 1002
-
-  IMPORT_SEQUENCE = 1101
-  IMPORT_PROTEIN = 1201
-  IMPORT_LIGAND = 1301
 
 
 class IconsEnum(enum.StrEnum):
@@ -171,70 +130,4 @@ class IconsEnum(enum.StrEnum):
   YOUTUBE = "YOUTUBE"
   TRANSFER = "SYNC_ALT"
   CONVERT = "RULE_SETTINGS"
-
-
-class JobStatus(enum.Enum):
-  """An enum for all job progress states."""
-  QUEUED = "queued"
-  WAITING = "waiting"
-  RUNNING = "running"
-  FINISHED = "finished"
-  FAILED = "failed"
-
-
-class JobType(enum.StrEnum):
-  """An enum for all job types."""
-  PREDICTION = "structure prediction"
-  DISTANCE_ANALYSIS = "distance analysis"
-  PREDICTION_AND_DISTANCE_ANALYSIS = "prediction and distance analysis"
-  RAY_TRACING = "ray-tracing"
-  GENERAL_PURPOSE = "general-purpose"
-  ABORT = "abort"
-
-
-class JobDescriptionKeys(enum.StrEnum):
-  """An enum for all job description keys.
-
-  Notes:
-      IMPORTANT: always use the .value of the enum! Otherwise, the connection to the auxiliary pymol would fail!
-  """
-  JOB_TYPE = "job_type"
-  # Prediction keys
-  PDB_FILEPATH = "pdb_filepath"
-  # Distance analysis keys
-  PROTEIN_PAIR_NAME = "the_protein_pair_name"
-  PROTEIN_1_PDB_CACHE_FILEPATH = "a_protein_1_pdb_cache_filepath"
-  PROTEIN_2_PDB_CACHE_FILEPATH = "a_protein_2_pdb_cache_filepath"
-  PROTEIN_1_PYMOL_SELECTION_STRING = "a_protein_1_pymol_selection_string"
-  PROTEIN_2_PYMOL_SELECTION_STRING = "a_protein_2_pymol_selection_string"
-  CUTOFF = "a_cutoff"
-  CYCLES = "the_cycles"
-  # Ray-tracing keys
-  IMAGE_DESTINATION_FILEPATH = "dest"
-  CACHED_SESSION_FILEPATH = "cached"
-  RAY_TRACE_MODE = "mode"
-  RAY_TEXTURE = "texture"
-  RAY_TRACING_RENDERER = "renderer"
-  # General purpose
-  JOB_SHORT_DESCRIPTION = "job_short_description"
-  PYMOL_SESSION = "pymol_session"
-  PROTEIN_NAME = "protein_name"
-
-
-class JobShortDescription(enum.StrEnum):
-  """An enum for all job short descriptions.
-
-  Notes:
-      IMPORTANT: always use the .value of the enum! Otherwise, the connection to the auxiliary pymol would fail!
-  """
-  RUN_STRUCTURE_PREDICTION = "Run ColabFold structure prediction."
-  RUN_DISTANCE_ANALYSIS = "Run distance analysis."
-  CREATE_RAY_TRACED_IMAGE = "Create new ray traced image."
-  CREATE_NEW_PROTEIN_PYMOL_SESSION = "Create new protein pymol session."
-  GET_ALL_CHAINS_OF_GIVEN_PROTEIN = "Get all chains of a given protein."
-  GET_ALL_SCENES_OF_SESSION = "Get all scenes of a given pymol session."
-  CONSOLIDATE_MOLECULE_OBJECT_TO_FIRST_STATE = (
-    "Consolidate molecule object to first state."
-  )
-  CLEAN_PROTEIN_UPDATE_STRUCTURE = "Clean the existing protein structure."
-  ABORT = "abort"
+  DROP_DOWN_ARROW = "KEYBOARD_ARROW_DOWN_GREY"
