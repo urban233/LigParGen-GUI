@@ -4,6 +4,7 @@ from PyQt6 import QtWidgets
 from ligpargen_gui.gui.main import test_frame, main_frame, main_frame_controller
 from ligpargen_gui.model.util.gui_style import styles_utils, icons
 
+
 if __name__ == "__main__":
   app = QtWidgets.QApplication(sys.argv)
   tmp_test_frame = test_frame.TestFrame()

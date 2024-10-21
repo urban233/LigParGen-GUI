@@ -22,14 +22,12 @@ def validate_path(the_current_entered_text: str) -> tuple[bool, str, str]:
       exception.NotMainThreadError: If function is called not from the main thread.
   """
   # <editor-fold desc="Checks">
+  if not gui_util.is_main_thread():
+    raise exception.NotMainThreadError()
   if the_current_entered_text is None:
     logger.error('the_current_entered_text is None.')
     raise exception.IllegalArgumentError('the_current_entered_text is None.')
-  if not gui_util.is_main_thread():
-    raise exception.NotMainThreadError()
-
   # </editor-fold>
-
   allowed_chars = {
     '0',
     '1',

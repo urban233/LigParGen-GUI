@@ -1,30 +1,25 @@
-import glob
 import logging
-import os
-import pathlib
-import subprocess
 from typing import Optional
-
 from PyQt6 import QtCore, QtGui, QtWidgets
-
-from ligpargen_gui.gui.control import compare_controller
-from ligpargen_gui.gui.custom_widgets import side_tabs, accordion, custom_button
-from ligpargen_gui.gui.dialog import dialog_compare
-# from ligpargen_gui.model.data_classes import workspace_project
+from ligpargen_gui.gui.custom_widgets import accordion, custom_button
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import icons
 from ligpargen_gui.gui.main.forms.auto import auto_main_frame
-# from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
+
+__docformat__ = "google"
 
 
 class MainFrame(QtWidgets.QMainWindow):
   """Main form."""
 
+  # <editor-fold desc="Class attributes">
   dialogClosed = QtCore.pyqtSignal(tuple)
   """A signal indicating that the dialog is closed."""
+  # </editor-fold>
 
   def __init__(self) -> None:
     """Constructor."""
@@ -602,52 +597,24 @@ class MainFrame(QtWidgets.QMainWindow):
 
     Args:
         event: The event object representing the close event.
+
+    Raises:
+      exception.NoneValueError: If `event` is None.
     """
     # <editor-fold desc="Checks">
-    # if event is None:
-    #   logger.error("event is None.")
-    #   raise exception.IllegalArgumentError("event is None.")
-
+    if event is None:
+      default_logging.append_to_log_file(logger, "event is None.", logging.ERROR)
+      raise exception.NoneValueError("event is None.")
     # </editor-fold>
     # Emit the custom signal when the window is closed
     self.dialogClosed.emit(("", event))
 
   def init_ui(self) -> None:
     """Initialize the UI elements."""
-    #self.set_icons()
     self.cbox_mol_optimization_iter.addItems(model_definitions.LigParGenOptions.MOLECULE_OPTIMIZATION_ITERATIONS)
     self.cbox_charge_model.addItems(model_definitions.LigParGenOptions.CHARGE_MODEL)
     self.cbox_molecule_charge.addItems(model_definitions.LigParGenOptions.MOLECULE_CHARGE)
     self.cbox_mol_optimization_iter.setFixedWidth(95)
     self.cbox_charge_model.setFixedWidth(95)
     self.cbox_molecule_charge.setFixedWidth(95)
-
-  def set_icons(self) -> None:
-    """Sets all icons for the main frame."""
-    # <editor-fold desc="Help">
-    icons.set_icon(self.ui.btn_help_5, model_definitions.IconsEnum.HELP)
-    icons.set_icon(self.ui.btn_help_6, model_definitions.IconsEnum.HELP)
-    icons.set_icon(self.ui.btn_help_7, model_definitions.IconsEnum.HELP)
-    icons.set_icon(self.ui.btn_help_8, model_definitions.IconsEnum.HELP)
-    # </editor-fold>
-    icons.set_icon(self.ui.btn_scroll_area_delete_delete, model_definitions.IconsEnum.DELETE)
-    icons.set_icon(self.ui.btn_project_page_back, model_definitions.IconsEnum.BACK)
-    self.ui.btn_project_page_back.setStyleSheet(
-      """
-      QPushButton#btn_project_page_back {
-          background-color: white;
-          border: 1px solid #5f6368;
-          border-radius: 13px;
-          border-color: #5f6368;
-          padding: 2px;
-          margin-top: 10px;
-          margin-left: 10px;
-          margin-right: 20px;
-          min-width: 20px;
-          max-width: 20px;
-          min-height: 20px;
-          max-height: 20px
-      }
-      """
-    )
   # </editor-fold>

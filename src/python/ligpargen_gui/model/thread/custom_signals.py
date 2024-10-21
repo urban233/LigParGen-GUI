@@ -9,9 +9,6 @@ from PyQt6 import QtWidgets
 from ligpargen_gui.model.util import exception
 from ligpargen_gui.model.custom_logging import default_logging
 
-if TYPE_CHECKING:
-  from ligpargen_gui.internal.data_structures.data_classes import job_summary
-
 logger = default_logging.setup_logger(__file__)
 __docformat__ = "google"
 
@@ -80,56 +77,6 @@ class AbortSignal(QtCore.QObject):
 
     try:
       self.abort.emit((True, a_source))
-    except Exception as e:
-      logger.error(e)
-      return False
-    else:
-      return True
-
-
-class RefreshAfterJobFinishedSignal(QtCore.QObject):
-  """Signal for refreshing after a job has finished."""
-
-  refresh = pyqtSignal(tuple)
-  """Signal to transfer data after a job finished in the form (job_is_for_current_project_flag, a_job_base_information_object, the_widget)"""
-
-  def emit_signal(
-          self,
-          job_is_for_current_project_flag: bool,
-          a_job_base_information_object: "job_summary.JobBaseInformation",
-          the_widget: QtWidgets.QWidget,
-  ) -> bool:
-    """Emits the signal.
-
-    Args:
-        job_is_for_current_project_flag (bool): A flag if the job is for the current project.
-        a_job_base_information_object (job_summary.JobBaseInformation): The job's base information.
-        the_widget (QtWidgets.QWidget): The widget associated with the signal.
-
-    Returns:
-        True: Operation successful, False: Otherwise
-    """
-    # <editor-fold desc="Checks">
-    if job_is_for_current_project_flag is None:
-      logger.error("job_is_for_current_project_flag is None.")
-      return False
-    if a_job_base_information_object is None:
-      logger.error("a_job_base_information_object is None.")
-      return False
-    if the_widget is None:
-      logger.error("the_widget is None.")
-      return False
-
-    # </editor-fold>
-
-    try:
-      self.refresh.emit(
-        (
-          job_is_for_current_project_flag,
-          a_job_base_information_object,
-          the_widget,
-        )
-      )
     except Exception as e:
       logger.error(e)
       return False

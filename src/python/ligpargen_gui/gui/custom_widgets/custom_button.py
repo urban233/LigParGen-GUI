@@ -1,268 +1,26 @@
+import logging
 from typing import Callable, Optional
-
 from PyQt6 import QtWidgets, QtGui, QtCore
 from PyQt6.QtGui import QPixmap
-
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import icons
+from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.custom_logging import default_logging
 
+logger = default_logging.setup_logger(__file__)
 
-class BigCardButton(QtWidgets.QPushButton):
-  """A custom button in the style of a big card."""
-  def __init__(self, a_description):
-    """Constructor"""
-    super().__init__()
-    self.setStyleSheet(
-      """
-      QPushButton {
-          background-color: #f0f0f0;
-          color: black;
-          font-family: "Segoe UI";
-          font-size: 12px;
-          border: none;
-          padding: 2px;
-      }
-      QPushButton::hover {
-          background-color: rgba(220, 219, 227, 0.5);
-      }
-      QPushButton::pressed {
-          background: #d6d6d6;
-          border: solid;
-          border-width: 2px;
-          border-radius: 4px;
-          border-color: #367AF6;
-      }
-    """
-    )
-    # Set up the main layout directly on the button
-    self._layout = QtWidgets.QVBoxLayout(self)
-    self._layout.setContentsMargins(0, 0, 0, 0)
-    self._layout.setSpacing(0)
-
-    # Set the button to have no default padding
-    self.setContentsMargins(0, 0, 0, 0)
-
-    # Create and set up the QLabel for image
-    self.lbl_image = QtWidgets.QLabel(self)
-    pixmap = QtGui.QPixmap(r"C:\Users\student\Downloads\MyRastergrafik.png")  # Update with the correct path
-    self.lbl_image.setPixmap(pixmap.scaled(175, 175, QtCore.Qt.AspectRatioMode.KeepAspectRatio))
-
-    # Create and set up the QLabel for description
-    self.lbl_description = QtWidgets.QLabel(a_description, self)
-
-    # Add widgets to layout and center them
-    self._layout.addWidget(self.lbl_image, alignment=QtCore.Qt.AlignmentFlag.AlignHCenter)
-    self._layout.addWidget(self.lbl_description, alignment=QtCore.Qt.AlignmentFlag.AlignHCenter)
-
-    # Ensure the layout size is updated
-    self.setLayout(self._layout)
-    self.setFixedSize(150, 200)
-
-
-class ProjectOverviewButton(QtWidgets.QPushButton):
-  """A custom button in the style of a big card."""
-
-  button_clicked = QtCore.pyqtSignal(tuple)
-  """A signal used to transfer the project name."""
-
-  def __init__(self, a_project_name, a_date_modified, a_callable: Callable):
-    """Constructor
-
-    Args:
-      a_project_name: The name of the project
-      a_date_modified: The date the project was last modified
-      a_callable: The function to use after the button was clicked.
-
-    Notes:
-      IMPORTANT: If the button is clicked the `a_callable` function will
-      receive a tuple containing the project name and the date modified.
-    """
-    super().__init__()
-    self.setStyleSheet(
-      """
-      QPushButton {
-          background-color: #f5f5f5;
-          color: black;
-          font-family: "Segoe UI";
-          font-size: 12px;
-          border-top: 1px solid #d1d1d1;
-          border-bottom: 1px solid #d1d1d1;
-          padding: 15px;
-      }
-      QPushButton::hover {
-          background-color: rgba(220, 219, 227, 0.5);
-          border: none;
-      }
-      QPushButton:disabled {
-          background-color: #f5f5f5;
-          color: #B0B0B0;
-          font-family: "Segoe UI";
-          font-size: 12px;
-          border: solid;
-          border-width: 1px;
-          border-radius: 4px;
-          border-color: #DCDCDC;
-          padding: 2px;
-      }
-
-      QPushButton::pressed {
-          background: #d6d6d6;
-          color: black;
-          font-family: "Segoe UI";
-          font-size: 12px;
-          border: solid;
-          border-width: 2px;
-          border-radius: 4px;
-          border-color: #367AF6;
-          padding: 2px;
-      }
-      """
-    )
-    # Set up the main layout directly on the button
-    self._layout = QtWidgets.QHBoxLayout(self)
-    self._layout.setContentsMargins(0, 0, 0, 0)
-    self._layout.setSpacing(0)
-    # Set the button to have no default padding
-    self.setContentsMargins(0, 0, 0, 0)
-    self.lbl_project_name = QtWidgets.QLabel(a_project_name, self)
-    self.lbl_project_name.setStyleSheet("""margin-left: 10px;""")
-    self.lbl_date_modified = QtWidgets.QLabel(a_date_modified, self)
-    self.lbl_date_modified.setStyleSheet("""margin-right: 10px;""")
-    # Add widgets to layout and center them
-    self._layout.addWidget(self.lbl_project_name)
-    self._layout.addStretch(1)
-    self._layout.addWidget(self.lbl_date_modified)
-    # Ensure the layout size is updated
-    self.setLayout(self._layout)
-    # Connect clicked signal
-    self.clicked.connect(self.send_button_clicked)
-    if a_callable is None:
-      print("Clicked button signal is not used.")
-    else:
-      self.button_clicked.connect(a_callable)
-  
-  def send_button_clicked(self) -> None:
-    """Sends a button clicked signal with the project name and date modified."""
-    self.button_clicked.emit((self.lbl_project_name.text(), self.lbl_date_modified.text()))
-
-
-class ProjectOverviewButtonWithCheckbox(ProjectOverviewButton):
-  def __init__(self, a_project_name, a_date_modified, a_callable: Optional[Callable] = None):
-    super().__init__(a_project_name, a_date_modified, a_callable)
-    self.cb_select = QtWidgets.QCheckBox("")
-    self.cb_select.setStyleSheet("""margin-left: 10px""")
-    self._layout.insertWidget(0, self.cb_select)
-    self.lbl_project_name.setStyleSheet("""margin-left: 43px;""")
-    if a_callable is None:
-      self.connect_button_clicked_with_checkbox_selection()
-    else:
-      self.clicked.connect(a_callable)
-
-  def connect_button_clicked_with_checkbox_selection(self) -> None:
-    """Connects the button clicked signal with the selection of the checkbox."""
-    self.clicked.connect(self._switch_checkbox_check_state)
-
-  def _switch_checkbox_check_state(self):
-    """Checks or unchecks the checkbox based on the current state."""
-    if self.cb_select.isChecked():
-      self.cb_select.setChecked(False)
-    else:
-      self.cb_select.setChecked(True)
-
-  def is_selected(self) -> bool:
-    """Checks if the checkbox is currently selected."""
-    return self.cb_select.isChecked()
-
-
-class ProjectSearchOverviewButton(QtWidgets.QPushButton):
-  """A custom button in the style of a big card."""
-
-  button_clicked = QtCore.pyqtSignal(tuple)
-  """A signal used to transfer the project name."""
-
-  def __init__(self, a_project_name, a_date_modified, a_callable: Optional[Callable] = None):
-    """Constructor
-
-    Args:
-      a_project_name: The name of the project
-      a_date_modified: The date the project was last modified
-      a_callable: The function to use after the button was clicked.
-
-    Notes:
-      IMPORTANT: If the button is clicked the `a_callable` function will
-      receive a tuple containing the project name and the date modified.
-    """
-    super().__init__()
-    self.setStyleSheet(
-      """
-      QPushButton {
-          background-color: #f5f5f5;
-          color: black;
-          font-family: "Segoe UI";
-          font-size: 12px;
-          border-top: 1px solid #d1d1d1;
-          border-bottom: 1px solid #d1d1d1;
-          padding: 15px;
-      }
-      QPushButton::hover {
-          background-color: rgba(220, 219, 227, 0.5);
-          border: none;
-      }
-      QPushButton:disabled {
-          background-color: #f5f5f5;
-          color: #B0B0B0;
-          font-family: "Segoe UI";
-          font-size: 12px;
-          border: solid;
-          border-width: 1px;
-          border-radius: 4px;
-          border-color: #DCDCDC;
-          padding: 2px;
-      }
-
-      QPushButton::pressed {
-          background: #d6d6d6;
-          color: black;
-          font-family: "Segoe UI";
-          font-size: 12px;
-          border: solid;
-          border-width: 2px;
-          border-radius: 4px;
-          border-color: #367AF6;
-          padding: 2px;
-      }
-      """
-    )
-    # Set up the main layout directly on the button
-    self._layout = QtWidgets.QVBoxLayout(self)
-    self._layout.setContentsMargins(0, 0, 0, 0)
-    self._layout.setSpacing(0)
-    # Set the button to have no default padding
-    self.setContentsMargins(0, 0, 0, 0)
-    self.lbl_project_name = QtWidgets.QLabel(a_project_name, self)
-    self.lbl_project_name.setStyleSheet("""margin-left: 10px;""")
-    self.lbl_date_modified = QtWidgets.QLabel(a_date_modified, self)
-    self.lbl_date_modified.setStyleSheet("""margin-left: 10px;""")
-    self._layout.addWidget(self.lbl_project_name)
-    self._layout.addWidget(self.lbl_date_modified)
-    # Ensure the layout size is updated
-    self.setLayout(self._layout)
-    # Connect clicked signal
-    if a_callable is not None:
-      self.clicked.connect(self.send_button_clicked)
-      self.button_clicked.connect(a_callable)
-
-  def send_button_clicked(self) -> None:
-    """Sends a button clicked signal with the project name and date modified."""
-    self.button_clicked.emit((self.lbl_project_name.text(), self.lbl_date_modified.text()))
+__docformat__ = "google"
 
 
 class DropDownButton(QtWidgets.QPushButton):
-  """Used for drop down (pop-up) dialog buttons."""
-  button_clicked = QtCore.pyqtSignal(tuple)
-  """A signal used to transfer the project name."""
+  """Represents a dropdown like button."""
 
-  def __init__(self, a_button_text: str, a_menu: QtWidgets.QMenu):
+  # <editor-fold desc="Class attributes">
+  button_clicked = QtCore.pyqtSignal(tuple)
+  """A signal used to indicate that the button was clicked."""
+  # </editor-fold>
+
+  def __init__(self, a_button_text: str, a_menu: QtWidgets.QMenu) -> None:
     """Constructor
 
     Args:
@@ -270,10 +28,25 @@ class DropDownButton(QtWidgets.QPushButton):
       a_date_modified: The date the project was last modified
       a_callable: The function to use after the button was clicked.
 
+    Raises:
+      exception.NoneValueError: If any of the arguments are None.
+      exception.IllegalArgumentError: If `a_button_text` is an empty string.
+
     Notes:
       IMPORTANT: If the button is clicked the `a_callable` function will
       receive a tuple containing the project name and the date modified.
     """
+    # <editor-fold desc="Checks">
+    if a_button_text is None:
+      default_logging.append_to_log_file(logger, "a_button_text is None.", logging.ERROR)
+      raise exception.NoneValueError("a_button_text is None.")
+    if a_button_text == "":
+      default_logging.append_to_log_file(logger, "a_button_text is an empty string.", logging.ERROR)
+      raise exception.IllegalArgumentError("a_button_text is an empty string.")
+    if a_menu is None:
+      default_logging.append_to_log_file(logger, "a_menu is None.", logging.ERROR)
+      raise exception.NoneValueError("a_menu is None.")
+    # </editor-fold>
     super().__init__()
     self.menu = a_menu
     self.setText(a_button_text)
@@ -324,7 +97,7 @@ class DropDownButton(QtWidgets.QPushButton):
     # Set the button to have no default padding
     self.setContentsMargins(0, 0, 0, 0)
     self.icon_label = QtWidgets.QLabel(self)
-    icon_pixmap = QPixmap(str(icons.ICON_PATHS["KEYBOARD_ARROW_DOWN_GREY"]))  # Replace with the path to your icon
+    icon_pixmap = QPixmap(str(icons.ICON_PATHS["KEYBOARD_ARROW_DOWN_GREY"]))
     self.icon_label.setPixmap(icon_pixmap.scaled(32, 32, QtCore.Qt.AspectRatioMode.KeepAspectRatio))
     self._layout.addStretch(1)
     self._layout.addWidget(self.icon_label)
@@ -333,18 +106,31 @@ class DropDownButton(QtWidgets.QPushButton):
     self.setFixedWidth(100)
     self.clicked.connect(self._show_menu)
 
-  def _show_menu(self):
-    # Get the global position of the bottom-left corner of the button
+  def _show_menu(self) -> None:
+    """Shows the menu beneath the button."""
     pos = self.mapToGlobal(self.rect().bottomLeft())
-    # Adjust the y-coordinate by adding some pixel space (e.g., 5 pixels)
     pos.setY(pos.y() + 3)
-    # Show the menu at the adjusted position
     self.menu.exec(pos)
 
   @staticmethod
-  def update_button_color(a_drop_down_button, a_check_state):
-    """Update the button font color based on checked actions."""
-    # If any action is checked, change the color to red, otherwise keep it black
+  def update_button_color(a_drop_down_button: "DropDownButton", a_check_state: bool) -> None:
+    """Update the button font color based on checked actions.
+
+    Args:
+      a_drop_down_button: The button that should be colored.
+      a_check_state: The check state of the QAction that is part of the QMenu which is displayed under the button.
+
+    Raises:
+      exception.NoneValueError: If any of the arguments are None.
+    """
+    # <editor-fold desc="Checks">
+    if a_drop_down_button is None:
+      default_logging.append_to_log_file(logger, "a_drop_down_button is None.", logging.ERROR)
+      raise exception.NoneValueError("a_drop_down_button is None.")
+    if a_check_state is None:
+      default_logging.append_to_log_file(logger, "a_check_state is None.", logging.ERROR)
+      raise exception.NoneValueError("a_check_state is None.")
+    # </editor-fold>
     any_checked = any(action.isChecked() for action in a_drop_down_button.menu.actions())
     if any_checked:
       a_drop_down_button.setStyleSheet(
@@ -370,7 +156,6 @@ class DropDownButton(QtWidgets.QPushButton):
         """
       )
     else:
-      # Reset to the default color (black) if no action is checked
       a_drop_down_button.setStyleSheet(
         """
         QPushButton {
@@ -400,11 +185,30 @@ class DropDownButton(QtWidgets.QPushButton):
 
 
 class PersistentQMenu(QtWidgets.QMenu):
-  def __init__(self, parent=None):
+  """Represents a QMenu that keeps open, after a click on any QAction."""
+
+  def __init__(self, parent=None) -> None:
+    """Constructor.
+
+    Args:
+      parent: The parent widget.
+    """
     super().__init__(parent)
 
-  # Reimplement the method to prevent closing on action click
-  def mouseReleaseEvent(self, event):
+  def mouseReleaseEvent(self, event) -> None:
+    """Reimplements the method to prevent closing on action click.
+
+    Args:
+      event: An event that is sent if the mouse is released.
+
+    Raises:
+      exception.NoneValueError: If `event` is None.
+    """
+    # <editor-fold desc="Checks">
+    if event is None:
+      default_logging.append_to_log_file(logger, "event is None.", logging.ERROR)
+      raise exception.NoneValueError("event is None.")
+    # </editor-fold>
     action = self.actionAt(event.pos())
     if action and action.isCheckable():
       # Toggle the action's checked state

@@ -1,19 +1,28 @@
+import logging
+
 from PyQt6 import QtCore
 from PyQt6 import QtWidgets
 from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
-
 from ligpargen_gui.gui.base_classes import base_dialog
 from ligpargen_gui.gui.dialog.forms.auto import auto_dialog_compare
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import styles_utils, icons
+from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.custom_logging import default_logging
+
+logger = default_logging.setup_logger(__file__)
+
+__docformat__ = "google"
 
 
 class DialogCompare(base_dialog.BaseDialog):
-  """Compare dialog"""
+  """Compare dialog."""
 
+  # <editor-fold desc="Class attributes">
   dialogClosed = QtCore.pyqtSignal()
   """A signal indicating that the dialog is closed."""
+  # </editor-fold>
 
   def __init__(self) -> None:
     """Constructor."""
@@ -203,11 +212,20 @@ class DialogCompare(base_dialog.BaseDialog):
       self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint
     )
 
-  def show_help(self):
-    # This method is called when the help button is clicked
-    QtWidgets.QMessageBox.information(self, 'Help', 'This is the help message.')
-
   def closeEvent(self, event) -> None:
-    """Closes the dialog (with the closeEvent) and emits the 'dialogClosed' signal."""
+    """Closes the dialog (with the closeEvent) and emits the 'dialogClosed' signal.
+
+    Args:
+      event: The close event.
+
+    Raises:
+      exception.NoneValueError: If `event` is None.
+
+    """
+    # <editor-fold desc="Checks">
+    if event is None:
+      default_logging.append_to_log_file(logger, "event is None.", logging.ERROR)
+      raise exception.NoneValueError("event is None.")
+    # </editor-fold>
     event.accept()
     self.dialogClosed.emit()

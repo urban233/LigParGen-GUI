@@ -18,7 +18,10 @@ if TYPE_CHECKING:
 class CompareController(base_controller.BaseController):
   """Controller for the compare dialog."""
 
+  # <editor-fold desc="Class attributes">
   component_task = QtCore.pyqtSignal(tuple)
+  """Custom signal to transfer a TaskResult object with the actual work"""
+  # </editor-fold>
 
   def __init__(self, a_dialog: "dialog_compare.DialogCompare") -> None:
     """Constructor.
@@ -54,7 +57,7 @@ class CompareController(base_controller.BaseController):
     self.connect_all_signals()
 
   def connect_all_signals(self):
-    """Connects all signals with their appropriate slots."""
+    """Connects all signals with their appropriate slot methods."""
     self._dialog.dialogClosed.connect(self.set_dialog_close_as_canceled)
     self._dialog.ui.btn_reference_path.clicked.connect(self.__slot_choose_reference_path_from_filesystem)
     self._dialog.ui.btn_to_compare_path.clicked.connect(self.__slot_choose_to_compare_path_from_filesystem)

@@ -5,7 +5,6 @@ from PyQt6 import QtGui
 from PyQt6 import QtCore
 
 from ligpargen_gui.model.preference import model_definitions
-from ligpargen_gui.model.util import enums
 from ligpargen_gui.model.util import exception
 from ligpargen_gui.model.custom_logging import default_logging
 
@@ -71,8 +70,8 @@ class BaseTreeModel(QtGui.QStandardItemModel):
     # </editor-fold>
     tmp_item = QtGui.QStandardItem(an_item_name)
     if an_item_object_value is not None:
-      tmp_item.setData(an_item_object_value, enums.ModelEnum.OBJECT_ROLE)
-    tmp_item.setData(an_item_type_value, enums.ModelEnum.TYPE_ROLE)
+      tmp_item.setData(an_item_object_value, model_definitions.RolesEnum.OBJECT_ROLE)
+    tmp_item.setData(an_item_type_value, model_definitions.RolesEnum.TYPE_ROLE)
     a_parent_node.appendRow(tmp_item)
     return tmp_item
 
@@ -153,7 +152,7 @@ class BaseTreeModel(QtGui.QStandardItemModel):
       default_logging.append_to_log_file(logger, "an_index is None.", logging.ERROR)
       raise exception.NoneValueError("an_index is None.")
     # </editor-fold>
-    return an_index.data(enums.ModelEnum.TYPE_ROLE)
+    return an_index.data(model_definitions.RolesEnum.TYPE_ROLE)
 
   def get_object_data_of_index(self, an_index: QtCore.QModelIndex) -> Any:
     """Gets the object of the index.
@@ -170,7 +169,7 @@ class BaseTreeModel(QtGui.QStandardItemModel):
       default_logging.append_to_log_file(logger, "an_index is None.", logging.ERROR)
       raise exception.NoneValueError("an_index is None.")
     # </editor-fold>
-    return an_index.data(enums.ModelEnum.OBJECT_ROLE)
+    return an_index.data(model_definitions.RolesEnum.OBJECT_ROLE)
 
   def create_row_number_iterator(self, an_index: Optional[QtCore.QModelIndex] = None) -> range:
     """Creates a list of row numbers for the given index.

@@ -1,8 +1,7 @@
 import logging
 import pathlib
-
+from PyQt6 import QtWebEngineWidgets, QtCore
 from tea.concurrent import task_result, action, task_manager, task_scheduler
-
 from ligpargen_gui.gui.control import compare_controller
 from ligpargen_gui.gui.dialog import dialog_compare
 from ligpargen_gui.gui.main import main_frame
@@ -16,7 +15,7 @@ __docformat__ = "google"
 
 
 class MainFrameController:
-  """Controller class for MainFrame"""
+  """Controller class for MainFrame."""
 
   def __init__(self, a_main_frame: "main_frame.MainFrame") -> None:
     """Constructor.
@@ -64,7 +63,7 @@ class MainFrameController:
       self.task_manager.append_task_result(a_task_result[1])
       self.task_scheduler.schedule(a_task_result[1])
 
-  def connect_all_signals(self):
+  def connect_all_signals(self) -> None:
     """Connects all signals with their slot functions."""
     self.basic_controllers["Compare"].component_task.connect(self.schedule_tool_task_result_object)
     self.main_frame.compare_action.triggered.connect(self.compare_file)
@@ -158,7 +157,19 @@ class MainFrameController:
     self.update_main_frame_gui()
 
   def __slot_check_structure_path_input(self, the_entered_text: str):
-    """Checks in real time if the entered path is valid or not."""
+    """Checks in real time if the entered path is valid or not.
+
+    Args:
+      the_entered_text: The entered path to be checked.
+
+    Raises:
+      exception.NoneValueError: If `the_entered_text` is None.
+    """
+    # <editor-fold desc="Checks">
+    if the_entered_text is None:
+      default_logging.append_to_log_file(logger, "the_entered_text is None.", logging.ERROR)
+      raise exception.NoneValueError("the_entered_text is None.")
+    # </editor-fold>
     tmp_success, tmp_status_text, tmp_stylesheet = validator.validate_path(the_entered_text)
     self.main_frame.lbl_structure_input_status.setText(tmp_status_text)
     self.main_frame.txt_structure_input.setStyleSheet(tmp_stylesheet)
@@ -181,7 +192,19 @@ class MainFrameController:
     self.update_main_frame_gui()
 
   def __slot_check_output_directory_path(self, the_entered_text: str):
-    """Checks in real time if the entered path is valid or not."""
+    """Checks in real time if the entered path is valid or not.
+
+    Args:
+      the_entered_text: The entered path to be checked.
+
+    Raises:
+      exception.NoneValueError: If `the_entered_text` is None.
+    """
+    # <editor-fold desc="Checks">
+    if the_entered_text is None:
+      default_logging.append_to_log_file(logger, "the_entered_text is None.", logging.ERROR)
+      raise exception.NoneValueError("the_entered_text is None.")
+    # </editor-fold>"""
     tmp_success, tmp_status_text, tmp_stylesheet = validator.validate_path(the_entered_text)
     self.main_frame.lbl_output_directory.setText(tmp_status_text)
     self.main_frame.txt_output_directory.setStyleSheet(tmp_stylesheet)
@@ -192,6 +215,7 @@ class MainFrameController:
   def compare_file(self) -> None:
     """Compares files using WinMerge."""
     # pwd: C:\Users\student\github_repos\LigParGen-GUI
+    # TODO: Change hard-coded test paths to variable ones (only for testing purposes)
     self.basic_controllers["Compare"].restore_ui()
     self.basic_controllers["Compare"].get_dialog().ui.txt_reference_path.setText(
       r"C:\Users\student\user_space\projects\ligpargen\LigParGen_Test\web_server_results")
@@ -212,6 +236,7 @@ class MainFrameController:
       self.basic_controllers["Compare"].component_task.emit((False, tmp_task_result))
 
   def async_compare_files(self) -> tuple[bool]:
+    """Compares the given files with WinMerge in an async manner."""
     try:
       compare.compare_files(
         pathlib.Path(self.basic_controllers["Compare"].reference_path),
@@ -226,6 +251,14 @@ class MainFrameController:
       return False,
 
   def __await_compare_files(self, value):
+    """Awaits the compare files async method and shows the results.
+
+    Args:
+      value: a custom result tuple object
+
+    Raises:
+      exception.NoneValueError: If `value` is None.
+    """
     # <editor-fold desc="Checks">
     if value is None:
       self.main_frame.ui.statusbar.showMessage("The result value is None!")  # TODO: Needs to be replaced by a statusbar manager like in PySSA
@@ -240,4 +273,10 @@ class MainFrameController:
     if tmp_results[0]:
       self.main_frame.ui.statusbar.showMessage(
         "Compare was successful.")  # TODO: Needs to be replaced by a statusbar manager like in PySSA
+      # TODO: Needs to be moved to another place (just for testing purposes!)
+      # Create a QWebEngineView to display the HTML content
+      self.browser = QtWebEngineWidgets.QWebEngineView()
+      # Load the HTML file
+      self.browser.setUrl(QtCore.QUrl.fromLocalFile(r"C:\Users\student\github_repos\LigParGen-GUI\test_files\AcCO_key_report.html"))
+      self.browser.show()
   # </editor-fold>
