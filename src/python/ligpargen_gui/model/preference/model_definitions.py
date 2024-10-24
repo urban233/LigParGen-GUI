@@ -43,10 +43,17 @@ class ModelDefinitions:
 
 
 class LigParGenOptions:
-  """Class that contains all ligpargen options of the webserver"""
+  """Class that contains all ligpargen options of the webserver."""
   MOLECULE_OPTIMIZATION_ITERATIONS = ["0", "1", "2", "3"]
   CHARGE_MODEL = ["CM1A-LBCC", "CM1A"]
   MOLECULE_CHARGE = ["0", "-1", "-2", "+1", "+2"]
+
+
+class LigParGenResultFileTypes(enum.StrEnum):
+  """Class that contains all result file types of the webserver."""
+  TINKER_KEY = "tinker.key"
+  TINKER_XYZ = "tinker.xyz"
+  # TODO: Add missing types!!!
 
 
 class RolesEnum(enum.IntEnum):
