@@ -6,4 +6,4 @@ from wsl2 import server
 
 if __name__ == '__main__':
   tmp = server.Server()
-  tmp.write_text_file_test()
+  tmp.ligpargen_command()

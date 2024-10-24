@@ -1,6 +1,6 @@
 import subprocess
 
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from ligpargen_gui.gui.main.forms.auto import auto_test_frame
 
 

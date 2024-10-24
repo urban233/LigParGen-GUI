@@ -1,3 +1,4 @@
+import subprocess
 
 
 class Server:
@@ -7,5 +8,13 @@ class Server:
   def start_request_loop(self):
     pass
 
-  def write_text_file_test(self):
-    open("/home/alma_ligpargen/test", "w").close()
+  def ligpargen_command(self):
+    subprocess.run(
+      ["bash", "/home/alma_ligpargen/ligpargen_batch",
+       "-s", "CCO",
+       "-n", "Acy",
+       "-p", "tmp_results/",  # IMPORTANT: Directory gets cleaned before result files are generated!!!
+       "-c", "0",
+       "-o", "3",
+       "-cgen", "CM1A-LBCC"]
+    )
