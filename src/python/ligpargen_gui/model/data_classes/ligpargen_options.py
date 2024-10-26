@@ -31,7 +31,7 @@ class LigParGenOptions:
     if a_charge_model is None:
       default_logging.append_to_log_file(logger, "a_charge_model is None.", logging.ERROR)
       raise exception.NoneValueError("a_charge_model is None.")
-    if a_charge_model != "CM1A-LBCC" or a_charge_model != "CM1A":
+    if a_charge_model != "CM1A-LBCC" and a_charge_model != "CM1A":
       default_logging.append_to_log_file(logger, "a_charge_model is invalid.", logging.ERROR)
       raise exception.IllegalArgumentError("a_charge_model is invalid.")
     if a_molecule_charge is None:

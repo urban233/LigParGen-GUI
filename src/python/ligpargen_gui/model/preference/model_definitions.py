@@ -10,22 +10,18 @@ class ModelDefinitions:
   Should be used as singleton class!
   """
   PROGRAM_ROOT_PATH = pathlib.Path(__file__).parent.parent.parent.parent.parent.parent
-  PROGRAM_BIN_ROOT_PATH = "C:\\ProgramData\\mediaforge\\MediaForge\\bin\\MediaForge"
+  PROGRAM_BIN_ROOT_PATH = "C:\\ProgramData\\IBCI\\LigParGen_GUI\\bin\\LigParGen_GUI"
   """Path to the root of the program."""
   PROGRAM_SRC_PATH = pathlib.Path(
     __file__).parent.parent.parent.parent.parent  # TODO: Must be switched to if ready for first tests f"{PROGRAM_BIN_ROOT_PATH}\\src"
   """Path to the root of the program sources."""
-  DEFAULT_WORKSPACE_PATH: pathlib.Path = pathlib.Path(
-    f"{os.path.expanduser('~')}/.mediaforge/default"
-  )
-  """Default workspace path"""
   SETTINGS_FILENAME = 'settings.json'
   """Default settings filename"""
   DEFAULT_SETTINGS_PATH: pathlib.Path = pathlib.Path(
-    f"{os.path.expanduser('~')}/.mediaforge/"
+    f"{os.path.expanduser('~')}/.ligpargen_gui/"
   )
   DEFAULT_SETTINGS_FILEPATH: pathlib.Path = pathlib.Path(
-    f"{os.path.expanduser('~')}/.mediaforge/{SETTINGS_FILENAME}"
+    f"{os.path.expanduser('~')}/.ligpargen_gui/{SETTINGS_FILENAME}"
   )
   """Default settings path"""
   DEFAULT_LOG_PATH: pathlib.Path = pathlib.Path(f'{DEFAULT_SETTINGS_PATH}/logs')
@@ -51,9 +47,23 @@ class LigParGenOptions:
 
 class LigParGenResultFileTypes(enum.StrEnum):
   """Class that contains all result file types of the webserver."""
+  APBS_PQR = "apbs.pqr"
+  CHARMM_PDB = "charmm.pdb"
+  CHARMM_PRM = "charmm.prm"
+  CHARMM_RTF = "charmm.rtf"
+  DESMOND_CMS = "desmond.cms"
+  GROMACS_GRO = "gromacs.gro"
+  GROMACS_ITP = "gromacs.itp"
+  LAMMPS_LMP = "lammps.lmp"
+  OPENMM_PDB = "openmm.pdb"
+  OPENMM_XML = "openmm.xml"
+  Q_LIB = "q.lib"
+  Q_PDB = "q.pdb"
+  Q_PRM = "q.prm"
   TINKER_KEY = "tinker.key"
   TINKER_XYZ = "tinker.xyz"
-  # TODO: Add missing types!!!
+  XPLOR_PARAM = "xplor.param"
+  XPLOR_TOP = "xplor.top"
 
 
 class RolesEnum(enum.IntEnum):

@@ -339,7 +339,7 @@ class MainFrame(QtWidgets.QMainWindow):
     self.output_directory_layout.setSpacing(4)
     self.output_directory_sub_layout = QtWidgets.QGridLayout()
     self.output_directory_sub_layout.setContentsMargins(0, 0, 0, 0)
-    self.lbl_output_directory = QtWidgets.QLabel("Input folder to structures")
+    self.lbl_output_directory = QtWidgets.QLabel("Output folder for results")
     self.txt_output_directory = QtWidgets.QLineEdit()
     self.btn_output_directory = QtWidgets.QPushButton("...")
     icons.set_icon(self.btn_output_directory, model_definitions.IconsEnum.OPEN)
@@ -553,6 +553,7 @@ class MainFrame(QtWidgets.QMainWindow):
     # for pair in matching_pairs:
     #   print(f"Match found: \nDir1: {pair[0]} \nDir2: {pair[1]}")
 
+  # <editor-fold desc="Util">
   def a_result_is_toggled(self) -> bool:
     """Checks if at least one of the resulting files are checked."""
     if self.action_apbs_pqr.isChecked():
@@ -590,6 +591,46 @@ class MainFrame(QtWidgets.QMainWindow):
     if self.action_xplor_top.isChecked():
       return True
     return False
+
+  def get_toggled_result_types(self) -> list:
+    """Gets all result types that are toggled."""
+    tmp_result_types: list = []
+    if self.action_apbs_pqr.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.APBS_PQR)
+    if self.action_charmm_pdb.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.CHARMM_PDB)
+    if self.action_charmm_prm.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.CHARMM_PRM)
+    if self.action_charmm_rtf.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.CHARMM_RTF)
+    if self.action_desmond_cms.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.DESMOND_CMS)
+    if self.action_gromacs_gro.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.GROMACS_GRO)
+    if self.action_gromacs_itp.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.GROMACS_ITP)
+    if self.action_lammps_lmp.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.LAMMPS_LMP)
+    if self.action_openmm_pdb.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.OPENMM_PDB)
+    if self.action_openmm_xml.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.OPENMM_XML)
+    if self.action_q_lib.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.Q_LIB)
+    if self.action_q_pdb.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.Q_PDB)
+    if self.action_q_prm.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.Q_PRM)
+    if self.action_tinker_xyz.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.TINKER_XYZ)
+    if self.action_tinker_key.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.TINKER_KEY)
+    if self.action_xplor_param.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.XPLOR_PARAM)
+    if self.action_xplor_top.isChecked():
+      tmp_result_types.append(model_definitions.LigParGenResultFileTypes.XPLOR_TOP)
+    return tmp_result_types
+  # </editor-fold>
 
   # <editor-fold desc="Basic">
   def closeEvent(self, event) -> None:  # noqa: ANN001

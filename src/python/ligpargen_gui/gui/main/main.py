@@ -8,10 +8,10 @@ from ligpargen_gui.model.util.gui_style import styles_utils, icons
 if __name__ == "__main__":
   app = QtWidgets.QApplication(sys.argv)
   tmp_test_frame = test_frame.TestFrame()
-  tmp_test_frame.show()
+  #tmp_test_frame.show()
   tmp_main_frame = main_frame.MainFrame()
   # tmp_main_frame.show()
   tmp_main_frame_controller = main_frame_controller.MainFrameController(tmp_main_frame)
-  # tmp_main_frame_controller.main_frame.show()
+  tmp_main_frame_controller.main_frame.show()
   styles_utils.set_stylesheet(app)
   sys.exit(app.exec())

@@ -94,7 +94,8 @@ def validate_path(the_current_entered_text: str) -> tuple[bool, str, str]:
     '-',
     '_',
     '\\',
-    ':'
+    ':',
+    '.'
   }
   for char in the_current_entered_text:
     if char not in allowed_chars:

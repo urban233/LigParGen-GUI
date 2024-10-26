@@ -7,7 +7,10 @@ from ligpargen_gui.gui.dialog import dialog_compare
 from ligpargen_gui.gui.main import main_frame
 from ligpargen_gui.gui.util import gui_util, validator
 from ligpargen_gui.model.custom_logging import default_logging
-from ligpargen_gui.model.util import exception, compare
+from ligpargen_gui.model.data_classes import ligpargen_options
+from ligpargen_gui.model.jobs import ligpargen_job_input
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.util import exception, compare, post_processing
 
 logger = default_logging.setup_logger(__file__)
 
@@ -91,6 +94,7 @@ class MainFrameController:
     self.main_frame.action_xplor_param.toggled.connect(self.update_main_frame_gui)
     self.main_frame.action_xplor_top.toggled.connect(self.update_main_frame_gui)
     # </editor-fold>
+    self.main_frame.btn_start_job.clicked.connect(self.start_ligpargen_job)
 
   def update_main_frame_gui(self) -> None:
     """Updates the entire gui of the main frame."""
@@ -148,12 +152,13 @@ class MainFrameController:
     default_logging.append_to_log_file(
       logger, "'Choose structure input folder from filesystem' button was clicked."
     )
-    gui_util.open_choose_folder_q_dialog(
+    _, tmp_path = gui_util.open_choose_folder_q_dialog(
       self.main_frame,
       self.main_frame.lbl_structure_input_status,
       self.main_frame.txt_structure_input,
       "Open structure folder"
     )
+    self.main_frame.txt_structure_input.setText(tmp_path)
     self.update_main_frame_gui()
 
   def __slot_check_structure_path_input(self, the_entered_text: str):
@@ -183,12 +188,13 @@ class MainFrameController:
     default_logging.append_to_log_file(
       logger, "'Choose results folder from filesystem' button was clicked."
     )
-    gui_util.open_choose_folder_q_dialog(
+    _, tmp_path = gui_util.open_choose_folder_q_dialog(
       self.main_frame,
       self.main_frame.lbl_output_directory_status,
       self.main_frame.txt_output_directory,
       "Open results folder"
     )
+    self.main_frame.txt_output_directory.setText(tmp_path)
     self.update_main_frame_gui()
 
   def __slot_check_output_directory_path(self, the_entered_text: str):
@@ -206,9 +212,26 @@ class MainFrameController:
       raise exception.NoneValueError("the_entered_text is None.")
     # </editor-fold>"""
     tmp_success, tmp_status_text, tmp_stylesheet = validator.validate_path(the_entered_text)
-    self.main_frame.lbl_output_directory.setText(tmp_status_text)
+    self.main_frame.lbl_output_directory_status.setText(tmp_status_text)
     self.main_frame.txt_output_directory.setStyleSheet(tmp_stylesheet)
     self.update_main_frame_gui()
+  # </editor-fold>
+
+  # <editor-fold desc="Start job">
+  def start_ligpargen_job(self):
+    """Starts the ligpargen conversion job."""
+    tmp_job_input = ligpargen_job_input.LigParGenJobInput(
+      pathlib.Path(self.main_frame.txt_structure_input.text()),
+      pathlib.Path(self.main_frame.txt_output_directory.text()),
+      ligpargen_options.LigParGenOptions(
+        int(self.main_frame.cbox_mol_optimization_iter.currentText()),
+        self.main_frame.cbox_charge_model.currentText(),
+        int(self.main_frame.cbox_molecule_charge.currentText())
+      ),
+      self.main_frame.get_toggled_result_types()
+    )
+    print(tmp_job_input.serialize())
+  # TODO: Add this for XYZ TINKER files: post_processing.post_process_tinker_xyz_file(pathlib.Path(r"C:\Users\student\github_repos\LigParGen-GUI\test_files\AcCO.tinker.xyz"))
   # </editor-fold>
 
   # <editor-fold desc="Compare files">

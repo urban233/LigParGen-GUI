@@ -29,7 +29,7 @@ def open_choose_folder_q_dialog(
         a_status_label: QtWidgets.QLabel,
         a_line_edit: QtWidgets.QLineEdit,
         a_q_file_dialog_caption: str
-) -> bool:
+) -> tuple[bool, str]:
   """Opens a choose folder dialog.
 
   Args:
@@ -71,9 +71,9 @@ def open_choose_folder_q_dialog(
     if file_name == "":
       a_status_label.setText("No folder has been selected.")
     else:
-      a_line_edit.setText(str(file_name.replace("/", "\\")))  # The QFileDialog returns the path with forward slashes
+      #a_line_edit.setText()  # The QFileDialog returns the path with forward slashes
       a_status_label.setText("")
-    return True
+    return True, str(file_name.replace("/", "\\"))
   except Exception as e:
     default_logging.append_to_log_file(logger, str(e), logging.ERROR)
-    return False
+    return False, ""
