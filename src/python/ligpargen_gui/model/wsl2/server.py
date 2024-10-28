@@ -2,8 +2,10 @@ import glob
 import json
 import os.path
 import pathlib
+import shutil
 import subprocess
 import zmq
+from wsl2 import constants, utils
 
 
 class Server:
@@ -18,31 +20,49 @@ class Server:
 
   def listen_for_job_input(self):
     self.job_input_data: dict = json.loads(self._recv_socket.recv_json())
-    tmp_input_folder: str = self.job_input_data["input_folder"]
+    tmp_input_folder: str = self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]
     tmp_input_folder = tmp_input_folder.replace("C:\\Users", "/mnt/c/Users")
     tmp_input_folder = tmp_input_folder.replace("\\", "/")
-    self.job_input_data["input_folder"] = tmp_input_folder
-    tmp_output_folder: str = self.job_input_data["output_folder"]
+    self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER] = tmp_input_folder
+    tmp_output_folder: str = self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER]
     tmp_output_folder = tmp_output_folder.replace("C:\\Users", "/mnt/c/Users")
     tmp_output_folder = tmp_output_folder.replace("\\", "/")
-    self.job_input_data["output_folder"] = tmp_output_folder
+    self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER] = tmp_output_folder
 
-  def run_job(self):
-    for tmp_file in glob.glob(os.path.join(self.job_input_data["input_folder"], "*.pdb")):
-      self.run_ligpargen_command(pathlib.Path(tmp_file))
+  def run_job(self) -> bool:
+    # <editor-fold desc="Preperations">
+    tmp_utils = utils.Utils()
+    if not tmp_utils.prepare_folder_structure():
+      return False
+    if not tmp_utils.copy_pdb_files_to_wsl2(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]):
+      return False
+    # </editor-fold>
+    for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pdb"):
+      if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
+        print(f"LigParGen conversion of {tmp_file} failed!")
+    # <editor-fold desc="Post-processing">
+    if not tmp_utils.filter_results(self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]):
+      return False
+    # </editor-fold>
+    return True
 
-  def run_ligpargen_command(self, a_file: pathlib.Path):
-    tmp_filename = str(a_file).replace(a_file.suffix, "")
-    subprocess.run(
-      ["bash", "/home/alma_ligpargen/ligpargen_batch",
-       "-i", str(a_file),
-       "-n", tmp_filename,
-       # "-p", f"{self.job_input_data['output_folder']}/{tmp_filename}",  # IMPORTANT: Directory gets cleaned before result files are generated!!!
-       "-p", tmp_filename,
-       "-c", str(self.job_input_data["options"]["molecule_charge"]),
-       "-o", str(self.job_input_data["options"]["mol_opt_iter"]),
-       "-cgen", str(self.job_input_data["options"]["charge_model"])]
-    )
+  def run_ligpargen_command(self, a_file: pathlib.Path) -> bool:
+    try:
+      subprocess.run(
+        ["bash", str(constants.Paths.LIGPARGEN_BATCH_FILEPATH),
+         "-i", str(a_file),
+         "-n", str(a_file).replace(a_file.suffix, ""),
+         # "-p", f"{self.job_input_data['output_folder']}/{tmp_filename}",  # IMPORTANT: Directory gets cleaned before result files are generated!!!
+         # "-p", tmp_filename,
+         "-c", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOLECULE_CHARGE]),
+         "-o", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOL_OPT_ITER]),
+         "-cgen", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_CHARGE_MODEL])],
+        cwd=str(constants.Paths.SCRATCH_DIR)  # The cwd needs to be set to ensure that the temporarily files of ligpargen are stored there!
+      )
+      return True
+    except Exception as e:
+      print(e)  # TODO: Add logger message here
+      return False
 
   def ligpargen_command(self):
     subprocess.run(
