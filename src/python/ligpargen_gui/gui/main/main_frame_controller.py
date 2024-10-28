@@ -1,5 +1,7 @@
 import logging
 import pathlib
+import subprocess
+
 from PyQt6 import QtWebEngineWidgets, QtCore
 from tea.concurrent import task_result, action, task_manager, task_scheduler
 from ligpargen_gui.gui.control import compare_controller
@@ -11,6 +13,7 @@ from ligpargen_gui.model.data_classes import ligpargen_options
 from ligpargen_gui.model.jobs import ligpargen_job_input
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util import exception, compare, post_processing
+from ligpargen_gui.model.windows import client
 
 logger = default_logging.setup_logger(__file__)
 
@@ -146,6 +149,9 @@ class MainFrameController:
         # </editor-fold>
     # </editor-fold>
 
+  def start_server(self) -> None:
+    subprocess.Popen(["wsl", "-d", "alma9LigParGen0205", "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"])
+
   # <editor-fold desc="Structure input">
   def __slot_choose_structure_input_path_from_filesystem(self) -> None:
     """Chooses a structure input folder path from the filesystem."""
@@ -230,7 +236,9 @@ class MainFrameController:
       ),
       self.main_frame.get_toggled_result_types()
     )
-    print(tmp_job_input.serialize())
+    self.start_server()
+    tmp_client = client.Client()
+    tmp_client.send_job_input(tmp_job_input.serialize())
   # TODO: Add this for XYZ TINKER files: post_processing.post_process_tinker_xyz_file(pathlib.Path(r"C:\Users\student\github_repos\LigParGen-GUI\test_files\AcCO.tinker.xyz"))
   # </editor-fold>
 
