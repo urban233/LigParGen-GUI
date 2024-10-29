@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 from PyQt6 import QtCore, QtGui, QtWidgets
-from ligpargen_gui.gui.custom_widgets import accordion, custom_button
+from ligpargen_gui.gui.custom_widgets import accordion, custom_button, custom_label
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import icons
 from ligpargen_gui.gui.main.forms.auto import auto_main_frame
@@ -446,9 +446,10 @@ class MainFrame(QtWidgets.QMainWindow):
     self.start_job_layout.addWidget(self.btn_start_job)
     # </editor-fold>
 
+    self.lbl_error_message = custom_label.ErrorMessageLabel(self)
+
     self.ui.main_frame_layout.addLayout(self.start_job_layout)
     self.ui.main_frame_layout.addStretch()
-
     self.setMaximumSize(461, 600)
     self.init_ui()
 
@@ -658,4 +659,14 @@ class MainFrame(QtWidgets.QMainWindow):
     self.cbox_mol_optimization_iter.setFixedWidth(95)
     self.cbox_charge_model.setFixedWidth(95)
     self.cbox_molecule_charge.setFixedWidth(95)
+
+  def add_error_message_labels(self):
+    # Calculate tooltip position just above the QLineEdit
+    tooltip_x = self.txt_structure_input.geometry().x() + 120
+    tooltip_y = self.txt_structure_input.geometry().y()
+    print(tooltip_x)
+    # Convert back to main window's coordinate system
+    # tooltip_pos = self.mapFromGlobal(QtCore.QPoint(tooltip_x, tooltip_y))
+    self.lbl_error_message = custom_label.ErrorMessageLabel(QtCore.QPoint(tooltip_x, tooltip_y), self)
+
   # </editor-fold>

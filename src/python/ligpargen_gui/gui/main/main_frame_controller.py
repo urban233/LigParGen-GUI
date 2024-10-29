@@ -4,14 +4,16 @@ import subprocess
 
 from PyQt6 import QtWebEngineWidgets, QtCore
 from tea.concurrent import task_result, action, task_manager, task_scheduler
-from ligpargen_gui.gui.control import compare_controller
-from ligpargen_gui.gui.dialog import dialog_compare
+from ligpargen_gui.gui.control import compare_controller, status_bar_manager, job_progress_controller
+from ligpargen_gui.gui.custom_widgets import custom_label
+from ligpargen_gui.gui.dialog import dialog_compare, dialog_job_progress
 from ligpargen_gui.gui.main import main_frame
 from ligpargen_gui.gui.util import gui_util, validator
 from ligpargen_gui.model.custom_logging import default_logging
 from ligpargen_gui.model.data_classes import ligpargen_options
 from ligpargen_gui.model.jobs import ligpargen_job_input
 from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.qmodel import job_progress_model
 from ligpargen_gui.model.util import exception, compare, post_processing
 from ligpargen_gui.model.windows import client
 
@@ -39,14 +41,18 @@ class MainFrameController:
     # </editor-fold>
     self.main_frame: "main_frame.MainFrame" = a_main_frame
     self.basic_controllers: dict = {
-      "Compare": compare_controller.CompareController(dialog_compare.DialogCompare())
+      "Compare": compare_controller.CompareController(dialog_compare.DialogCompare()),
+      "JobProgress": job_progress_controller.JobProgressController(dialog_job_progress.DialogJobProgress())
     }
+    self.status_bar_manager = status_bar_manager.StatusBarManager(self.main_frame)
     # <editor-fold desc="Tasks">
     self.task_manager = task_manager.TaskManager()
     self.task_scheduler = task_scheduler.TaskScheduler()
     # </editor-fold>
+    self.job_progress_model = job_progress_model.JobProgressModel()
     self.connect_all_signals()
     self.update_main_frame_gui()
+    self.status_bar_manager.show_temporary_message("Hi there from the status bar!")
 
   def schedule_tool_task_result_object(
           self,
@@ -182,7 +188,16 @@ class MainFrameController:
       raise exception.NoneValueError("the_entered_text is None.")
     # </editor-fold>
     tmp_success, tmp_status_text, tmp_stylesheet = validator.validate_path(the_entered_text)
-    self.main_frame.lbl_structure_input_status.setText(tmp_status_text)
+    if tmp_success:
+      self.main_frame.lbl_error_message.hide()
+    else:
+      self.main_frame.lbl_error_message.show_message(
+        QtCore.QPoint(
+          self.main_frame.txt_structure_input.geometry().x() + 75,
+          self.main_frame.txt_structure_input.geometry().y()
+        ),
+        tmp_status_text
+      )
     self.main_frame.txt_structure_input.setStyleSheet(tmp_stylesheet)
     self.update_main_frame_gui()
 
@@ -218,7 +233,15 @@ class MainFrameController:
       raise exception.NoneValueError("the_entered_text is None.")
     # </editor-fold>"""
     tmp_success, tmp_status_text, tmp_stylesheet = validator.validate_path(the_entered_text)
-    self.main_frame.lbl_output_directory_status.setText(tmp_status_text)
+    if tmp_success:
+      self.main_frame.lbl_error_message.hide()
+    else:
+      pos = self.main_frame.txt_output_directory.mapToGlobal(QtCore.QPoint(0, 0))
+      # I could not figure out how to not set the offsets manually
+      # (someone is needed that understands the positioning in PyQt6)
+      pos.setX(120)
+      pos.setY(pos.y() - 251)
+      self.main_frame.lbl_error_message.show_message(pos, tmp_status_text)
     self.main_frame.txt_output_directory.setStyleSheet(tmp_stylesheet)
     self.update_main_frame_gui()
   # </editor-fold>
@@ -226,6 +249,8 @@ class MainFrameController:
   # <editor-fold desc="Start job">
   def start_ligpargen_job(self):
     """Starts the ligpargen conversion job."""
+    self.job_progress_model.create_root_node()
+    self.basic_controllers["JobProgress"].set_job_progress_model(self.job_progress_model)
     tmp_job_input = ligpargen_job_input.LigParGenJobInput(
       pathlib.Path(self.main_frame.txt_structure_input.text()),
       pathlib.Path(self.main_frame.txt_output_directory.text()),
@@ -236,9 +261,12 @@ class MainFrameController:
       ),
       self.main_frame.get_toggled_result_types()
     )
-    self.start_server()
-    tmp_client = client.Client()
-    tmp_client.send_job_input(tmp_job_input.serialize())
+    self.job_progress_model.add_job_progress_message("Starting LigParGen job ...")
+    self.basic_controllers["JobProgress"].get_dialog().show()
+    self.job_progress_model.add_job_progress_message("Finished LigParGen job!")
+    # self.start_server()
+    # tmp_client = client.Client()
+    # tmp_client.send_job_input(tmp_job_input.serialize())
   # TODO: Add this for XYZ TINKER files: post_processing.post_process_tinker_xyz_file(pathlib.Path(r"C:\Users\student\github_repos\LigParGen-GUI\test_files\AcCO.tinker.xyz"))
   # </editor-fold>
 

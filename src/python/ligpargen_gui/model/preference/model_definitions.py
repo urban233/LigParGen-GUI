@@ -5,7 +5,7 @@ import pathlib
 
 
 class ModelDefinitions:
-  """Global basic definitions for the core component.
+  """Global basic definitions for the model.
 
   Should be used as singleton class!
   """

@@ -896,7 +896,7 @@ QProgressBar {
     border-color: #DCDBE3;
     background-color: #efefef;
     max-height: 17px;
-    max-width: 80px;
+    /*max-width: 80px;*/
     text-align: center;
     color: black;
 }
