@@ -11,3 +11,4 @@ if __name__ == '__main__':
     print("Job failed!")
   else:
     print("Job finished successfully!")
+  tmp_server.send_finished_signal()

@@ -1,11 +1,16 @@
 import glob
 import json
+import logging
 import os.path
 import pathlib
 import shutil
 import subprocess
 import zmq
 from wsl2 import constants, utils
+from wsl2 import post_processing
+from wsl2 import default_logging, exception
+
+logger = default_logging.setup_logger(__file__)
 
 
 class Server:
@@ -30,20 +35,40 @@ class Server:
     self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER] = tmp_output_folder
 
   def run_job(self) -> bool:
-    # <editor-fold desc="Preperations">
+    # <editor-fold desc="Preparations">
     tmp_utils = utils.Utils()
     if not tmp_utils.prepare_folder_structure():
+      default_logging.append_to_log_file(logger, "Preparing folder structure failed!", logging.FATAL)
       return False
     if not tmp_utils.copy_pdb_files_to_wsl2(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]):
+      default_logging.append_to_log_file(logger, "Copying pdb files to WSL2 failed!", logging.FATAL)
       return False
     # </editor-fold>
     for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pdb"):
       if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
-        print(f"LigParGen conversion of {tmp_file} failed!")
+        default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} failed!", logging.ERROR)
     # <editor-fold desc="Post-processing">
     if not tmp_utils.filter_results(self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]):
       return False
+    for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_RESULTS_DIR, "*.tinker.*"):
+      tmp_path: pathlib.Path = pathlib.Path(tmp_file)
+      if tmp_path.suffix == ".xyz":
+        post_processing.post_process_tinker_xyz_file(tmp_path)
+        os.rename(tmp_path, tmp_file.replace(".tinker.xyz", ".xyz"))
+      elif tmp_path.suffix == ".key":
+        os.rename(tmp_path, tmp_file.replace(".tinker.key", ".key"))
+      else:
+        print(f"In {tmp_path} exists no valid tinker file extension!")
+        return False
+    if "apbs.pqr" in self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]:
+      for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pqr"):
+        shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_RESULTS_DIR)
     # </editor-fold>
+    # try:
+    #   tmp_utils.copy_files_to_windows(constants.Paths.SCRATCH_RESULTS_DIR, self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER])
+    # except Exception as e:
+    #   default_logging.append_to_log_file(logger, f"An error occurred while copying results: {e}", logging.ERROR)
+    #   return False
     return True
 
   def run_ligpargen_command(self, a_file: pathlib.Path) -> bool:
@@ -52,8 +77,6 @@ class Server:
         ["bash", str(constants.Paths.LIGPARGEN_BATCH_FILEPATH),
          "-i", str(a_file),
          "-n", str(a_file).replace(a_file.suffix, ""),
-         # "-p", f"{self.job_input_data['output_folder']}/{tmp_filename}",  # IMPORTANT: Directory gets cleaned before result files are generated!!!
-         # "-p", tmp_filename,
          "-c", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOLECULE_CHARGE]),
          "-o", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOL_OPT_ITER]),
          "-cgen", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_CHARGE_MODEL])],
@@ -64,13 +87,6 @@ class Server:
       print(e)  # TODO: Add logger message here
       return False
 
-  def ligpargen_command(self):
-    subprocess.run(
-      ["bash", "/home/alma_ligpargen/ligpargen_batch",
-       "-s", "CCO",
-       "-n", "Acy",
-       "-p", "tmp_results/",  # IMPORTANT: Directory gets cleaned before result files are generated!!!
-       "-c", "0",
-       "-o", "3",
-       "-cgen", "CM1A-LBCC"]
-    )
+  def send_finished_signal(self):
+    print("Sending ...")
+    self._sender_socket.send_json("{'Finished': True}")

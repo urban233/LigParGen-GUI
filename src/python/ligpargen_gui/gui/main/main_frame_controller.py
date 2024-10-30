@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import shutil
 import subprocess
 
 from PyQt6 import QtWebEngineWidgets, QtCore
@@ -14,6 +15,7 @@ from ligpargen_gui.model.jobs import ligpargen_job_input
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util import exception, compare, post_processing
 from ligpargen_gui.model.windows import client
+from ligpargen_gui.model.wsl2 import constants
 
 logger = default_logging.setup_logger(__file__)
 
@@ -226,6 +228,7 @@ class MainFrameController:
   # <editor-fold desc="Start job">
   def start_ligpargen_job(self):
     """Starts the ligpargen conversion job."""
+    print("start_ligpargen_job")
     tmp_job_input = ligpargen_job_input.LigParGenJobInput(
       pathlib.Path(self.main_frame.txt_structure_input.text()),
       pathlib.Path(self.main_frame.txt_output_directory.text()),
@@ -239,7 +242,9 @@ class MainFrameController:
     self.start_server()
     tmp_client = client.Client()
     tmp_client.send_job_input(tmp_job_input.serialize())
-  # TODO: Add this for XYZ TINKER files: post_processing.post_process_tinker_xyz_file(pathlib.Path(r"C:\Users\student\github_repos\LigParGen-GUI\test_files\AcCO.tinker.xyz"))
+    tmp_client.wait_for_results()
+    tmp_client.copy_results(tmp_job_input.output_folder)
+    print("end_ligpargen_job")
   # </editor-fold>
 
   # <editor-fold desc="Compare files">

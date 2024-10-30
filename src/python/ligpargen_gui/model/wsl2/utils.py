@@ -24,7 +24,7 @@ class Utils:
   def copy_pdb_files_to_wsl2(self, an_input_folder: pathlib.Path) -> bool:
     """Copies all pdb files from the input folder to the ligpargen_gui WSL2 scratch directory."""
     try:
-      for tmp_file in glob.glob(os.path.join(str(an_input_folder), "*.pdb")):
+      for tmp_file in self.loop_over_directory_with_wildcard(an_input_folder, "*.pdb"):
         shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_DIR)
       return True
     except Exception as e:
@@ -45,3 +45,13 @@ class Utils:
   def loop_over_directory_with_wildcard(self, a_path: pathlib.Path, a_wildcard: str) -> list:
     """Loops over a given directory and filters with the given wildcard."""
     return glob.glob(os.path.join(str(a_path), a_wildcard))
+
+  def copy_files_to_windows(self, a_src_folder: pathlib.Path, a_dest_folder: pathlib.Path) -> bool:
+    """Copies all pdb files from the input folder to the ligpargen_gui WSL2 scratch directory."""
+    try:
+      for tmp_file in self.loop_over_directory_with_wildcard(a_src_folder, "*.*"):
+        shutil.copy(pathlib.Path(tmp_file), a_dest_folder)
+      return True
+    except Exception as e:
+      print(e)  # TODO: Add logger message here
+      return False
