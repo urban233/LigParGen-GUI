@@ -3,7 +3,7 @@ import pathlib
 import subprocess
 
 from PyQt6 import QtWebEngineWidgets, QtCore
-from tea.concurrent import task_result, action, task_manager, task_scheduler
+from tea.concurrent import task_result, action, task_manager, task_scheduler, task_result_factory
 from ligpargen_gui.gui.control import compare_controller, status_bar_manager, job_progress_controller
 from ligpargen_gui.gui.custom_widgets import custom_label
 from ligpargen_gui.gui.dialog import dialog_compare, dialog_job_progress, custom_message_box
@@ -45,6 +45,7 @@ class MainFrameController:
       "JobProgress": job_progress_controller.JobProgressController(dialog_job_progress.DialogJobProgress())
     }
     self.status_bar_manager = status_bar_manager.StatusBarManager(self.main_frame)
+    self.client = client.Client()
     # <editor-fold desc="Tasks">
     self.task_manager = task_manager.TaskManager()
     self.task_scheduler = task_scheduler.TaskScheduler()
@@ -104,6 +105,7 @@ class MainFrameController:
     self.main_frame.action_xplor_top.toggled.connect(self.update_main_frame_gui)
     # </editor-fold>
     self.main_frame.btn_start_job.clicked.connect(self.start_ligpargen_job)
+    self.client.progress_signal.connect(self.update_progress_dialog)
 
   def update_main_frame_gui(self) -> None:
     """Updates the entire gui of the main frame."""
@@ -154,6 +156,14 @@ class MainFrameController:
           self.main_frame.btn_start_job.setEnabled(True)
         # </editor-fold>
     # </editor-fold>
+
+  def update_progress_dialog(self, a_progress_info: tuple) -> None:
+    tmp_msg, tmp_finished_mols, _ = a_progress_info
+    self.job_progress_model.add_job_progress_message(tmp_msg)
+    tmp_progress = (tmp_finished_mols[0]/tmp_finished_mols[1]) * 80
+    print(tmp_progress)
+    self.basic_controllers["JobProgress"].set_progress_bar_value(int(tmp_progress))
+
 
   def start_server(self) -> None:
     subprocess.Popen(["wsl", "-d", "alma9LigParGen0205", "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"])
@@ -263,20 +273,36 @@ class MainFrameController:
       self.main_frame.get_toggled_result_types()
     )
     self.job_progress_model.add_job_progress_message("Starting LigParGen job ...")
+    self.task_manager.append_task_result(
+      task_result_factory.TaskResultFactory.run_task_result(
+        a_task_result=task_result.TaskResult.from_action(
+          an_action=action.Action(
+            a_target=self.async_run_ligpargen_job,
+            args=(tmp_job_input, ),
+          ),
+          an_await_function=self.__await_run_ligpargen_job
+        ),
+        a_task_scheduler=self.task_scheduler
+      )
+    )
     self.basic_controllers["JobProgress"].get_dialog().show()
-    self.job_progress_model.add_job_progress_message("Finished LigParGen job!")
+
+  def async_run_ligpargen_job(self, a_job_input: "ligpargen_job_input.LigParGenJobInput"):
     self.start_server()
-    tmp_client = client.Client()
-    tmp_client.send_job_input(tmp_job_input.serialize())
-    tmp_client.wait_for_results()
-    tmp_client.copy_results(tmp_job_input.output_folder)
-    print("end_ligpargen_job")
+    self.client.send_job_input(a_job_input.serialize())
+    self.client.check_progress_status()
+    self.client.copy_results(a_job_input.output_folder)
+
+  def __await_run_ligpargen_job(self):
+    self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))
     tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
       "LigParGen job failed!\nPlease consult the log file to get more information.",
       "Job",
       custom_message_box.CustomMessageBoxIcons.DANGEROUS.value,
     )
     tmp_job_failed_msg_box.exec()
+    self.basic_controllers["JobProgress"].get_dialog().ui.btn_cancel.setEnabled(False)
+    self.basic_controllers["JobProgress"].get_dialog().ui.btn_ok.setEnabled(True)
   # </editor-fold>
 
   # <editor-fold desc="Compare files">

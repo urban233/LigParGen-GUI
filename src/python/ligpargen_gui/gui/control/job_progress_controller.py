@@ -61,6 +61,7 @@ class JobProgressController(base_controller.BaseController):
     """Connects all signals with their appropriate slot methods."""
     self._dialog.dialogClosed.connect(self.set_dialog_close_as_canceled)
     self._dialog.ui.btn_cancel.clicked.connect(self._dialog.close)
+    self._dialog.ui.btn_ok.clicked.connect(self._dialog.close)
 
   def get_dialog(self) -> QtWidgets.QDialog:
     """Gets the dialog of the controller."""
@@ -78,3 +79,6 @@ class JobProgressController(base_controller.BaseController):
     """Sets the job progress model to update the list view with new messages."""
     self.job_progress_model = a_job_progress_model
     self._dialog.ui.list_view_progress.setModel(self.job_progress_model)
+
+  def set_progress_bar_value(self, a_progress_bar_value: int) -> None:
+    self._dialog.ui.prog_bar.setValue(a_progress_bar_value)
