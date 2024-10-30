@@ -42,7 +42,7 @@ class MainFrameController:
     self.main_frame: "main_frame.MainFrame" = a_main_frame
     self.basic_controllers: dict = {
       "Compare": compare_controller.CompareController(dialog_compare.DialogCompare()),
-      "JobProgress": job_progress_controller.JobProgressController(dialog_job_progress.DialogJobProgress())
+      "JobProgress": job_progress_controller.JobProgressController(dialog_job_progress.DialogJobProgress(self.main_frame))
     }
     self.status_bar_manager = status_bar_manager.StatusBarManager(self.main_frame)
     # <editor-fold desc="Tasks">

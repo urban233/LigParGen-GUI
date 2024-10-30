@@ -24,9 +24,9 @@ class DialogJobProgress(base_dialog.BaseDialog):
   """A signal indicating that the dialog is closed."""
   # </editor-fold>
 
-  def __init__(self) -> None:
+  def __init__(self, a_parent) -> None:
     """Constructor."""
-    super().__init__()
+    super().__init__(parent=a_parent)
     self.ui = auto_dialog_job_progress.Ui_Dialog()
     self.ui.setupUi(self)
     self.setup_ui()
