@@ -23,7 +23,6 @@ class JobProgressModel(QtGui.QStandardItemModel):
     """Constructor."""
     super().__init__()
     self.root_node: Optional[QtGui.QStandardItem] = None
-    #self.setHorizontalHeaderLabels(["Variable", "Value"])
 
   def create_root_node(self) -> None:
     """Creates the root node of the tree model."""

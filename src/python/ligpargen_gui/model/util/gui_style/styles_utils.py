@@ -9,6 +9,8 @@ from ligpargen_gui.model.preference import model_definitions
 
 __docformat__ = "google"
 
+from ligpargen_gui.model.util import exception
+
 logger = default_logging.setup_logger(__file__)
 
 
@@ -91,6 +93,57 @@ def set_stylesheet(self) -> None:  # noqa: ANN001
     style = file.read()
     # Set the stylesheet of the application
     self.setStyleSheet(style)
+
+
+def set_default_button_style(a_button: QtWidgets.QPushButton):
+  """Sets the default button style."""
+  a_button.setStyleSheet(
+    """
+      QPushButton {
+        background-color: #fff;
+        color: black;
+        font-family: "Segoe UI";
+        font-size: 12px;
+        border: solid;
+        border-width: 1px;
+        border-radius: 4px;
+        border-color: #DCDCDC;
+        padding: 2px;
+        min-width: 65px;
+        max-width: 65px;
+        min-height: 15px;
+    }
+
+    QPushButton:disabled {
+        background-color: #fff;
+        color: #B0B0B0;
+        font-family: "Segoe UI";
+        font-size: 12px;
+        border: solid;
+        border-width: 1px;
+        border-radius: 4px;
+        border-color: #DCDCDC;
+        padding: 2px;
+        min-width: 65px;
+        max-width: 65px;
+        min-height: 15px;
+    }
+
+    QPushButton::pressed {
+        background-color: #fff;
+        color: black;
+        font-family: "Segoe UI";
+        font-size: 12px;
+        border: solid;
+        border-width: 2px;
+        border-radius: 4px;
+        border-color: #367AF6;
+        padding: 0px;
+        min-width: 65px;
+        max-width: 65px;
+        min-height: 15px;
+    }
+    """)
 
 
 def set_stylesheet_homepage(self) -> None:  # noqa: ANN001

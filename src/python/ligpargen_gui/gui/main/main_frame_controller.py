@@ -6,7 +6,7 @@ from PyQt6 import QtWebEngineWidgets, QtCore
 from tea.concurrent import task_result, action, task_manager, task_scheduler
 from ligpargen_gui.gui.control import compare_controller, status_bar_manager, job_progress_controller
 from ligpargen_gui.gui.custom_widgets import custom_label
-from ligpargen_gui.gui.dialog import dialog_compare, dialog_job_progress
+from ligpargen_gui.gui.dialog import dialog_compare, dialog_job_progress, custom_message_box
 from ligpargen_gui.gui.main import main_frame
 from ligpargen_gui.gui.util import gui_util, validator
 from ligpargen_gui.model.custom_logging import default_logging
@@ -249,6 +249,7 @@ class MainFrameController:
   # <editor-fold desc="Start job">
   def start_ligpargen_job(self):
     """Starts the ligpargen conversion job."""
+    self.job_progress_model = job_progress_model.JobProgressModel()
     self.job_progress_model.create_root_node()
     self.basic_controllers["JobProgress"].set_job_progress_model(self.job_progress_model)
     tmp_job_input = ligpargen_job_input.LigParGenJobInput(
@@ -264,10 +265,15 @@ class MainFrameController:
     self.job_progress_model.add_job_progress_message("Starting LigParGen job ...")
     self.basic_controllers["JobProgress"].get_dialog().show()
     self.job_progress_model.add_job_progress_message("Finished LigParGen job!")
+    tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
+      "LigParGen job failed!\nPlease consult the log file to get more information.",
+      "Job",
+      custom_message_box.CustomMessageBoxIcons.DANGEROUS.value,
+    )
+    tmp_job_failed_msg_box.exec()
     # self.start_server()
     # tmp_client = client.Client()
     # tmp_client.send_job_input(tmp_job_input.serialize())
-  # TODO: Add this for XYZ TINKER files: post_processing.post_process_tinker_xyz_file(pathlib.Path(r"C:\Users\student\github_repos\LigParGen-GUI\test_files\AcCO.tinker.xyz"))
   # </editor-fold>
 
   # <editor-fold desc="Compare files">
