@@ -1,12 +1,20 @@
+import json
 import pathlib
 import subprocess
 
 import zmq
+from PyQt6 import QtCore
 
 
-class Client:
+class Client(QtCore.QObject):
+  # <editor-fold desc="Class attributes">
+  progress_signal = QtCore.pyqtSignal(tuple)
+  """Custom signal to transfer the progress."""
+  # </editor-fold>
+
   def __init__(self):
     # Socket definitions
+    super().__init__()
     context = zmq.Context()
     self._sender_socket = context.socket(zmq.PUSH)
     self._sender_socket.connect("tcp://127.0.0.1:8033")
@@ -35,5 +43,8 @@ class Client:
       check=True,
     )
 
-  def wait_for_results(self):
-    print(self._recv_socket.recv_json())
+  def check_progress_status(self):
+    tmp_progress_info: dict = {"status": "started"}
+    while tmp_progress_info["status"] != "finished":
+      tmp_progress_info: dict = json.loads(self._recv_socket.recv_json())
+      self.progress_signal.emit(tuple(tmp_progress_info.values()))

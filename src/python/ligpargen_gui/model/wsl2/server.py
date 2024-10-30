@@ -44,9 +44,22 @@ class Server:
       default_logging.append_to_log_file(logger, "Copying pdb files to WSL2 failed!", logging.FATAL)
       return False
     # </editor-fold>
+    tmp_number_of_mols = len(os.listdir(constants.Paths.SCRATCH_DIR)) - 1  # -1 due to results dir
+    i = 1
     for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pdb"):
       if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
+        tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} failed!"
         default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} failed!", logging.ERROR)
+      else:
+        tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} finished."
+      self._sender_socket.send_json(
+        json.dumps({
+          "msg": tmp_msg,
+          "finished_mols": (i, tmp_number_of_mols),
+          "status": "in-progress"
+        })
+      )
+      i += 1
     # <editor-fold desc="Post-processing">
     if not tmp_utils.filter_results(self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]):
       return False
@@ -63,6 +76,8 @@ class Server:
     if "apbs.pqr" in self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]:
       for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pqr"):
         shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_RESULTS_DIR)
+    for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_RESULTS_DIR, "*.*"):
+      subprocess.run(["unix2dos", tmp_file])
     # </editor-fold>
     # try:
     #   tmp_utils.copy_files_to_windows(constants.Paths.SCRATCH_RESULTS_DIR, self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER])
@@ -80,7 +95,8 @@ class Server:
          "-c", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOLECULE_CHARGE]),
          "-o", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOL_OPT_ITER]),
          "-cgen", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_CHARGE_MODEL])],
-        cwd=str(constants.Paths.SCRATCH_DIR)  # The cwd needs to be set to ensure that the temporarily files of ligpargen are stored there!
+        cwd=str(constants.Paths.SCRATCH_DIR),  # The cwd needs to be set to ensure that the temporarily files of ligpargen are stored there!
+        timeout=50
       )
       return True
     except Exception as e:
@@ -89,4 +105,10 @@ class Server:
 
   def send_finished_signal(self):
     print("Sending ...")
-    self._sender_socket.send_json("{'Finished': True}")
+    self._sender_socket.send_json(
+      json.dumps({
+        "msg": "Finished LigParGen job.",
+        "finished_mols": (0, 1),
+        "status": "finished"
+      })
+    )
