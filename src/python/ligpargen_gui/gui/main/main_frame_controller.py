@@ -265,15 +265,18 @@ class MainFrameController:
     self.job_progress_model.add_job_progress_message("Starting LigParGen job ...")
     self.basic_controllers["JobProgress"].get_dialog().show()
     self.job_progress_model.add_job_progress_message("Finished LigParGen job!")
+    self.start_server()
+    tmp_client = client.Client()
+    tmp_client.send_job_input(tmp_job_input.serialize())
+    tmp_client.wait_for_results()
+    tmp_client.copy_results(tmp_job_input.output_folder)
+    print("end_ligpargen_job")
     tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
       "LigParGen job failed!\nPlease consult the log file to get more information.",
       "Job",
       custom_message_box.CustomMessageBoxIcons.DANGEROUS.value,
     )
     tmp_job_failed_msg_box.exec()
-    # self.start_server()
-    # tmp_client = client.Client()
-    # tmp_client.send_job_input(tmp_job_input.serialize())
   # </editor-fold>
 
   # <editor-fold desc="Compare files">
