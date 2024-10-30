@@ -1,6 +1,5 @@
 import logging
 import pathlib
-import shutil
 import subprocess
 
 from PyQt6 import QtWebEngineWidgets, QtCore
@@ -15,7 +14,6 @@ from ligpargen_gui.model.jobs import ligpargen_job_input
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util import exception, compare, post_processing
 from ligpargen_gui.model.windows import client
-from ligpargen_gui.model.wsl2 import constants
 
 logger = default_logging.setup_logger(__file__)
 
@@ -228,7 +226,8 @@ class MainFrameController:
   # <editor-fold desc="Start job">
   def start_ligpargen_job(self):
     """Starts the ligpargen conversion job."""
-    print("start_ligpargen_job")
+    self.job_progress_model.create_root_node()
+    self.basic_controllers["JobProgress"].set_job_progress_model(self.job_progress_model)
     tmp_job_input = ligpargen_job_input.LigParGenJobInput(
       pathlib.Path(self.main_frame.txt_structure_input.text()),
       pathlib.Path(self.main_frame.txt_output_directory.text()),
@@ -239,6 +238,13 @@ class MainFrameController:
       ),
       self.main_frame.get_toggled_result_types()
     )
+    self.job_progress_model.add_job_progress_message("Starting LigParGen job ...")
+    self.basic_controllers["JobProgress"].get_dialog().show()
+    self.job_progress_model.add_job_progress_message("Finished LigParGen job!")
+    # self.start_server()
+    # tmp_client = client.Client()
+    # tmp_client.send_job_input(tmp_job_input.serialize())
+  # TODO: Add this for XYZ TINKER files: post_processing.post_process_tinker_xyz_file(pathlib.Path(r"C:\Users\student\github_repos\LigParGen-GUI\test_files\AcCO.tinker.xyz"))
     self.start_server()
     tmp_client = client.Client()
     tmp_client.send_job_input(tmp_job_input.serialize())
