@@ -9,12 +9,18 @@ class ModelDefinitions:
 
   Should be used as singleton class!
   """
+  # <editor-fold desc="For development purposes">
   PROGRAM_ROOT_PATH = pathlib.Path(__file__).parent.parent.parent.parent.parent.parent
-  PROGRAM_BIN_ROOT_PATH = "C:\\ProgramData\\IBCI\\LigParGen_GUI\\bin\\LigParGen_GUI"
   """Path to the root of the program."""
-  PROGRAM_SRC_PATH = pathlib.Path(
-    __file__).parent.parent.parent.parent.parent  # TODO: Must be switched to if ready for first tests f"{PROGRAM_BIN_ROOT_PATH}\\src"
-  """Path to the root of the program sources."""
+  PROGRAM_SRC_PATH = r"C:\Users\student\github_repos\LigParGen-GUI\src"
+  # </editor-fold>
+
+  # <editor-fold desc="Deployment paths">
+  #PROGRAM_ROOT_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal"
+  """Path to the root of the program."""
+  #PROGRAM_SRC_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal\\src"
+  # </editor-fold>
+
   SETTINGS_FILENAME = 'settings.json'
   """Default settings filename"""
   DEFAULT_SETTINGS_PATH: pathlib.Path = pathlib.Path(
@@ -34,6 +40,8 @@ class ModelDefinitions:
   """Path to the assets folder"""
   ICONS_PATH = pathlib.Path(f"{ASSETS_PATH}/icons")
   """Path to the icons folder"""
+  LOGO_FILEPATH = pathlib.Path(f"{ASSETS_PATH}/logo.png")
+  """Path to the logo image"""
   STATUS_MESSAGE_TIMEOUT = 5000  # value in msec
   """The standard status bar message timeout"""
 

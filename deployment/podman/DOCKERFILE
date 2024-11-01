@@ -1,0 +1,72 @@
+# Use AlmaLinux 9 as the base image
+FROM gitlab-registry.cern.ch/linuxsupport/alma9-base:latest
+
+# Set environment variables to non-interactive for avoiding interaction during package installation
+ENV YUM_INTERACTIVE=0
+
+# Create a new user called alma_ligpargen and add to sudo group
+# Install required packages and clean up temporary files in a single RUN command
+RUN dnf -y install \
+    wget \
+    curl \
+    git \
+    csh \
+    sudo \
+    libXrender \ 
+    libXext \
+    dos2unix \
+    ca-certificates && \
+    # Create a new user and configure sudo privileges
+    useradd -m -s /bin/bash alma_ligpargen && \
+    usermod -aG wheel alma_ligpargen && \
+    echo 'alma_ligpargen ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
+    # Clean up cached files to reduce image size
+    dnf clean all
+
+# Set WORKDIR and create custom directory for BOSS_FILES
+WORKDIR /home/alma_ligpargen
+
+# Copy the local directory into the container and set correct ownership
+COPY ligpargen_batch /home/alma_ligpargen/
+RUN chmod +x ./ligpargen_batch
+RUN chown -R alma_ligpargen:alma_ligpargen ./ligpargen_batch
+# Switch to the new user
+USER alma_ligpargen
+
+# Switch back to root to add i386 architecture and install required libraries
+USER root
+RUN dnf install -y glibc.i686 libstdc++.i686 libgcc.i686 && \
+    dnf clean all  # Clean up after installation
+
+# Switch back to alma_ligpargen user
+USER alma_ligpargen
+
+# Download the Miniconda installation script
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda && \
+    rm Miniconda3-latest-Linux-x86_64.sh  # Clean up after installation
+
+# Add conda to the PATH
+ENV PATH="/home/alma_ligpargen/miniconda/bin:$PATH"
+
+# Initialize conda and create the conda environment called py37
+RUN conda init && conda create -y -n py37 python=3.7
+
+# Activate the environment and install the required packages
+RUN /bin/bash -c "source activate py37 && \
+    conda install -y -c rdkit rdkit && \
+    conda install -y -c conda-forge openbabel"
+
+# Clone the ligpargen repository
+RUN git clone https://github.com/Isra3l/ligpargen.git
+
+# Install ligpargen using pip in editable mode
+RUN /bin/bash -c "source activate py37 && \
+    pip install -e ligpargen"
+
+# Install ZeroMQ using pip
+RUN /bin/bash -c "source activate py37 && \
+    pip install pyzmq"
+
+# Set the entry point to bash so you can interact with the container when it's running
+ENTRYPOINT ["/bin/bash"]

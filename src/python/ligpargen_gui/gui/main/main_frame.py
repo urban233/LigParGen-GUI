@@ -452,6 +452,8 @@ class MainFrame(QtWidgets.QMainWindow):
     self.ui.main_frame_layout.addStretch()
     self.setMaximumSize(461, 600)
     self.init_ui()
+    self.setWindowIcon(QtGui.QIcon(str(model_definitions.ModelDefinitions.LOGO_FILEPATH)))
+    self.setWindowTitle("LigParGen GUI")
 
     # # Custom widgets
     # self.ribbon_bar = ribbon_bar.RibbonBar()

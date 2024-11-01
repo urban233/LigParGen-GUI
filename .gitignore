@@ -30,7 +30,6 @@ MANIFEST
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
 
 # Installer logs
 pip-log.txt
@@ -162,3 +161,22 @@ cython_debug/
 .idea/
 external/
 test_files/
+
+# Deployment
+deployment/src/bin
+deployment/src/PostInstallationRunner.exe
+deployment/src/WslCheck.exe
+deployment/out
+deployment/src/offline_resources/alma9-ligpargen-rootfs.tar
+
+# C#
+src/c_sharp/.vs
+src/c_sharp/.idea
+
+src/c_sharp/PostInstallationRunner/bin
+src/c_sharp/PostInstallationRunner/obj
+src/c_sharp/PostInstallationRunner/Properties/PublishProfiles/*.user
+src/c_sharp/PostInstallationRunner/*.user
+
+src/c_sharp/WslCheck/bin
+src/c_sharp/WslCheck/obj

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Activate the conda environment named 'py37'
+source activate py37
+
+# Check if ligpargen command is available
+if ! command -v ligpargen &> /dev/null; then
+    echo "ligpargen could not be found. Please ensure it's installed in the 'py37' environment."
+    exit 1
+fi
+
+export BOSSdir=/home/alma_ligpargen/boss
+
+# Run the ligpargen command with any arguments passed to the script
+ligpargen "$@"
