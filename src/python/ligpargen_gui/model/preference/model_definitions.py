@@ -21,6 +21,8 @@ class ModelDefinitions:
   #PROGRAM_SRC_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal\\src"
   # </editor-fold>
 
+  DISTRO_NAME = "alma9LigParGen0205"
+  """Name of the WSL2 distro"""
   SETTINGS_FILENAME = 'settings.json'
   """Default settings filename"""
   DEFAULT_SETTINGS_PATH: pathlib.Path = pathlib.Path(
@@ -72,6 +74,12 @@ class LigParGenResultFileTypes(enum.StrEnum):
   TINKER_XYZ = "tinker.xyz"
   XPLOR_PARAM = "xplor.param"
   XPLOR_TOP = "xplor.top"
+
+
+class JopTypes(enum.StrEnum):
+  """Enumeration for storing possible job types."""
+  RUN_LIGPARGEN = "RUN LigParGen"
+  INSTALL_BOSS = "INSTALL Boss"
 
 
 class RolesEnum(enum.IntEnum):

@@ -5,6 +5,9 @@ import subprocess
 import zmq
 from PyQt6 import QtCore
 
+from ligpargen_gui.model.preference import model_definitions
+from ligpargen_gui.model.util import filesystem_util
+
 
 class Client(QtCore.QObject):
   # <editor-fold desc="Class attributes">
@@ -25,14 +28,12 @@ class Client(QtCore.QObject):
     self._sender_socket.send_json(a_job_input_as_json)
 
   def copy_results(self, a_dest_folder: pathlib.Path):
-    tmp_output_folder: str = str(a_dest_folder)
-    tmp_output_folder = tmp_output_folder.replace("C:\\Users", "/mnt/c/Users")
-    tmp_output_folder = tmp_output_folder.replace("\\", "/")
+    tmp_output_folder: str = filesystem_util.windows_to_wsl_path(str(a_dest_folder))
     subprocess.run(
       [
         "wsl",
         "-d",
-        "alma9LigParGen0205",
+        model_definitions.ModelDefinitions.DISTRO_NAME,
         "-u",
         "alma_ligpargen",
         "cp",

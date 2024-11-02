@@ -4,17 +4,18 @@ import subprocess
 
 from PyQt6 import QtWebEngineWidgets, QtCore
 from tea.concurrent import task_result, action, task_manager, task_scheduler, task_result_factory
-from ligpargen_gui.gui.control import compare_controller, status_bar_manager, job_progress_controller
+from ligpargen_gui.gui.control import compare_controller, status_bar_manager, job_progress_controller, \
+  install_boss_controller
 from ligpargen_gui.gui.custom_widgets import custom_label
-from ligpargen_gui.gui.dialog import dialog_compare, dialog_job_progress, custom_message_box
+from ligpargen_gui.gui.dialog import dialog_compare, dialog_job_progress, custom_message_box, dialog_install_boss
 from ligpargen_gui.gui.main import main_frame
 from ligpargen_gui.gui.util import gui_util, validator
 from ligpargen_gui.model.custom_logging import default_logging
 from ligpargen_gui.model.data_classes import ligpargen_options
-from ligpargen_gui.model.jobs import ligpargen_job_input
+from ligpargen_gui.model.jobs import ligpargen_job_input, install_boss_job_input
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.qmodel import job_progress_model
-from ligpargen_gui.model.util import exception, compare, post_processing
+from ligpargen_gui.model.util import exception, compare, post_processing, filesystem_util
 from ligpargen_gui.model.windows import client
 
 logger = default_logging.setup_logger(__file__)
@@ -41,6 +42,7 @@ class MainFrameController:
     # </editor-fold>
     self.main_frame: "main_frame.MainFrame" = a_main_frame
     self.basic_controllers: dict = {
+      "InstallBoss": install_boss_controller.InstallBossController(dialog_install_boss.DialogInstallBoss(self.main_frame)),
       "Compare": compare_controller.CompareController(dialog_compare.DialogCompare()),
       "JobProgress": job_progress_controller.JobProgressController(dialog_job_progress.DialogJobProgress(self.main_frame))
     }
@@ -53,7 +55,7 @@ class MainFrameController:
     self.job_progress_model = job_progress_model.JobProgressModel()
     self.connect_all_signals()
     self.update_main_frame_gui()
-    self.status_bar_manager.show_temporary_message("Hi there from the status bar!")
+    self.check_if_boss_is_installed()
 
   def schedule_tool_task_result_object(
           self,
@@ -164,9 +166,64 @@ class MainFrameController:
     print(tmp_progress)
     self.basic_controllers["JobProgress"].set_progress_bar_value(int(tmp_progress))
 
+  def check_if_boss_is_installed(self) -> None:
+    """Checks if the BOSS software is installed in the WSL2 and prompts the user if not."""
+    tmp_boss_is_installed = filesystem_util.check_file_exists_in_wsl(
+      model_definitions.ModelDefinitions.DISTRO_NAME, "/home/alma_ligpargen/boss/BOSS"
+    )
+    if not tmp_boss_is_installed:
+      self.basic_controllers["InstallBoss"].set_slot_method_for_ok_button(self.open_progress_dialog_for_boss_install)
+      self.basic_controllers["InstallBoss"].get_dialog().show()
+
+  def open_progress_dialog_for_boss_install(self) -> None:
+    """Opens the job progress dialog for the boss installation."""
+    self.basic_controllers["InstallBoss"].disable_all_input_widgets()
+    self.job_progress_model = job_progress_model.JobProgressModel()
+    self.job_progress_model.create_root_node()
+    self.basic_controllers["JobProgress"].set_job_progress_model(self.job_progress_model)
+    self.job_progress_model.add_job_progress_message("Installing BOSS software ...")
+    tmp_job_input = install_boss_job_input.InstallBossJobInput(
+      pathlib.Path(self.basic_controllers["InstallBoss"].get_dialog().txt_boss_tar_gz_path.text())
+    )
+    self.task_manager.append_task_result(
+      task_result_factory.TaskResultFactory.run_task_result(
+        a_task_result=task_result.TaskResult.from_action(
+          an_action=action.Action(
+            a_target=self.async_run_install_boss_job,
+            args=(tmp_job_input,),
+          ),
+          an_await_function=self.__await_install_boss
+        ),
+        a_task_scheduler=self.task_scheduler
+      )
+    )
+    self.basic_controllers["JobProgress"].get_dialog().setWindowTitle("Install BOSS Status")
+    self.basic_controllers["JobProgress"].get_dialog().show()
+
+  def async_run_install_boss_job(self, a_job_input: "install_boss_job_input.InstallBossJobInput") -> None:
+    """Installs the boss software with the given tar.gz file."""
+    self.start_server()
+    tmp = a_job_input.serialize(a_job_input.get_obj_as_dict())
+    self.client.send_job_input(tmp)
+    self.client.check_progress_status()
+
+  def __await_install_boss(self) -> None:
+    """Awaits the installation of the boss software."""
+    self.job_progress_model.add_job_progress_message("Installing BOSS software finished!")
+    self.basic_controllers["InstallBoss"].boss_is_installed = True
+    self.basic_controllers["InstallBoss"].get_dialog().close()
+    self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))
+    tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
+      "The installation of the BOSS software was successful.",
+      "Install BOSS Finished",
+      custom_message_box.CustomMessageBoxIcons.INFORMATION.value,
+    )
+    tmp_job_failed_msg_box.exec()
+    self.basic_controllers["JobProgress"].get_dialog().ui.btn_cancel.setEnabled(False)
+    self.basic_controllers["JobProgress"].get_dialog().ui.btn_ok.setEnabled(True)
 
   def start_server(self) -> None:
-    subprocess.Popen(["wsl", "-d", "alma9LigParGen0205", "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"])
+    subprocess.Popen(["wsl", "-d", model_definitions.ModelDefinitions.DISTRO_NAME, "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"])
 
   # <editor-fold desc="Structure input">
   def __slot_choose_structure_input_path_from_filesystem(self) -> None:
@@ -176,7 +233,6 @@ class MainFrameController:
     )
     _, tmp_path = gui_util.open_choose_folder_q_dialog(
       self.main_frame,
-      self.main_frame.lbl_structure_input_status,
       self.main_frame.txt_structure_input,
       "Open structure folder"
     )
@@ -221,7 +277,6 @@ class MainFrameController:
     )
     _, tmp_path = gui_util.open_choose_folder_q_dialog(
       self.main_frame,
-      self.main_frame.lbl_output_directory_status,
       self.main_frame.txt_output_directory,
       "Open results folder"
     )
@@ -285,11 +340,13 @@ class MainFrameController:
         a_task_scheduler=self.task_scheduler
       )
     )
+    self.basic_controllers["JobProgress"].get_dialog().setWindowTitle("LigParGen Job Status")
     self.basic_controllers["JobProgress"].get_dialog().show()
 
   def async_run_ligpargen_job(self, a_job_input: "ligpargen_job_input.LigParGenJobInput"):
+    """Runs a ligpargen job asynchronously."""
     self.start_server()
-    self.client.send_job_input(a_job_input.serialize())
+    self.client.send_job_input(a_job_input.serialize(a_job_input.get_obj_as_dict()))
     self.client.check_progress_status()
     self.client.copy_results(a_job_input.output_folder)
 

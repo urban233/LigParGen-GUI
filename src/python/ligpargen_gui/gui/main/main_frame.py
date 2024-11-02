@@ -83,12 +83,12 @@ class MainFrame(QtWidgets.QMainWindow):
       }
       """
     )
-    self.lbl_structure_input_status = QtWidgets.QLabel("")
-    self.lbl_structure_input_status.setStyleSheet("""color: #ba1a1a; font-size: 11px; padding:0px;""")
+    #self.lbl_structure_input_status = QtWidgets.QLabel("")
+    #self.lbl_structure_input_status.setStyleSheet("""color: #ba1a1a; font-size: 11px; padding:0px;""")
     self.structure_input_layout.addWidget(self.lbl_structure_input)
     self.structure_input_sub_layout.addWidget(self.txt_structure_input, 0, 0)
     self.structure_input_sub_layout.addWidget(self.btn_structure_input, 0, 1)
-    self.structure_input_sub_layout.addWidget(self.lbl_structure_input_status, 1, 0)
+    #self.structure_input_sub_layout.addWidget(self.lbl_structure_input_status, 1, 0)
     self.structure_input_layout.addLayout(self.structure_input_sub_layout)
     # </editor-fold>
 
@@ -364,13 +364,13 @@ class MainFrame(QtWidgets.QMainWindow):
       }
       """
     )
-    self.lbl_output_directory_status = QtWidgets.QLabel("")
-    self.lbl_output_directory_status.setStyleSheet(
-      """color: #ba1a1a; font-size: 11px; margin-top: 0px; margin-bottom: 15px; padding:0px;""")
+    #self.lbl_output_directory_status = QtWidgets.QLabel("")
+    # self.lbl_output_directory_status.setStyleSheet(
+    #   """color: #ba1a1a; font-size: 11px; margin-top: 0px; margin-bottom: 15px; padding:0px;""")
     self.output_directory_layout.addWidget(self.lbl_output_directory)
     self.output_directory_sub_layout.addWidget(self.txt_output_directory, 0, 0)
     self.output_directory_sub_layout.addWidget(self.btn_output_directory, 0, 1)
-    self.output_directory_sub_layout.addWidget(self.lbl_output_directory_status, 1, 0)
+    #self.output_directory_sub_layout.addWidget(self.lbl_output_directory_status, 1, 0)
     self.output_directory_layout.addLayout(self.output_directory_sub_layout)
     # </editor-fold>
 

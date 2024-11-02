@@ -50,8 +50,8 @@ Source: "src\bin\*"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\bin"; Flags: ig
 Source: "src\assets\logo.ico"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\assets"; Flags: ignoreversion recursesubdirs createallsubdirs;
 
 [Icons]
-Name: "{commondesktop}\LigParGenGUI"; Filename: "{commonappdata}\IBCI\LigParGenGUI\bin\LigParGenGUI.exe"; IconFilename: "{commonappdata}\IBCI\LigParGenGUI\assets\icon.ico"
-Name: "{commonstartmenu}\LigParGenGUI"; Filename: "{commonappdata}\IBCI\LigParGenGUI\bin\LigParGenGUI.exe"; IconFilename: "{commonappdata}\IBCI\LigParGenGUI\assets\icon.ico"
+Name: "{commondesktop}\LigParGenGUI"; Filename: "{commonappdata}\IBCI\LigParGenGUI\bin\LigParGenGUI.exe"; IconFilename: "{commonappdata}\IBCI\LigParGenGUI\assets\logo.ico"
+Name: "{commonstartmenu}\LigParGenGUI"; Filename: "{commonappdata}\IBCI\LigParGenGUI\bin\LigParGenGUI.exe"; IconFilename: "{commonappdata}\IBCI\LigParGenGUI\assets\logo.ico"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{commonappdata}\IBCI\LigParGenGUI"

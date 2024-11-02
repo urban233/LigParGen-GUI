@@ -84,7 +84,6 @@ class CompareController(base_controller.BaseController):
     )
     gui_util.open_choose_folder_q_dialog(
       self._dialog,
-      self._dialog.ui.lbl_reference_path_status,
       self._dialog.ui.txt_reference_path,
       "Open reference path"
     )
@@ -96,7 +95,6 @@ class CompareController(base_controller.BaseController):
     )
     gui_util.open_choose_folder_q_dialog(
       self._dialog,
-      self._dialog.ui.lbl_to_compare_path_status,
       self._dialog.ui.txt_to_compare_path,
       "Open to compare path"
     )
@@ -108,7 +106,6 @@ class CompareController(base_controller.BaseController):
     )
     gui_util.open_choose_folder_q_dialog(
       self._dialog,
-      self._dialog.ui.lbl_report_path_status,
       self._dialog.ui.txt_report_path,
       "Open report path"
     )

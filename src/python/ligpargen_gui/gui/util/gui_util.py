@@ -26,7 +26,6 @@ def is_main_thread() -> bool:
 
 def open_choose_folder_q_dialog(
         a_parent: Union[QtWidgets.QDialog, QtWidgets.QMainWindow],
-        a_status_label: QtWidgets.QLabel,
         a_line_edit: QtWidgets.QLineEdit,
         a_q_file_dialog_caption: str
 ) -> tuple[bool, str]:
@@ -34,7 +33,6 @@ def open_choose_folder_q_dialog(
 
   Args:
     a_parent: Either a QDialog or a QMainWindow.
-    a_status_label: The label beneath the line edit that displays the status.
     a_line_edit: The line edit.
     a_q_file_dialog_caption: The caption of the QFileDialog.
 
@@ -49,9 +47,6 @@ def open_choose_folder_q_dialog(
   if a_parent is None:
     default_logging.append_to_log_file(logger, "a_parent is None.", logging.ERROR)
     raise exception.NoneValueError("a_parent is None.")
-  if a_status_label is None:
-    default_logging.append_to_log_file(logger, "a_status_label is None.", logging.ERROR)
-    raise exception.NoneValueError("a_status_label is None.")
   if a_line_edit is None:
     default_logging.append_to_log_file(logger, "a_line_edit is None.", logging.ERROR)
     raise exception.NoneValueError("a_line_edit is None.")
@@ -69,10 +64,12 @@ def open_choose_folder_q_dialog(
       QtCore.QDir.homePath(),
     )
     if file_name == "":
-      a_status_label.setText("No folder has been selected.")
+      # a_status_label.setText("No folder has been selected.")
+      pass
     else:
       #a_line_edit.setText()  # The QFileDialog returns the path with forward slashes
-      a_status_label.setText("")
+      # a_status_label.setText("")
+      pass
     return True, str(file_name.replace("/", "\\"))
   except Exception as e:
     default_logging.append_to_log_file(logger, str(e), logging.ERROR)

@@ -25,3 +25,5 @@ Install BOSS
 COPY boss0824.tar.gz LigParGen-CommandFiles-master.zip /home/alma_ligpargen/BOSS_FILES/
 RUN chown -R alma_ligpargen:alma_ligpargen ./BOSS_FILES/
 RUN tar -xvf ./BOSS_FILES/boss0824.tar.gz && echo 'export BOSSdir=/home/alma_ligpargen/boss' >> ~/.bashrc
+
+C:\Users\student\user_space\projects\ligpargen\Deployment\boss0824.tar.gz
