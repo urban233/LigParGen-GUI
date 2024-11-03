@@ -27,12 +27,12 @@ class Constants:
   """The name of the AlmaLinux rootfs."""
 
   alma_linux_rootfs_build_filepath: pathlib.Path = pathlib.Path(
-    "deployment", "podman", alma_linux_rootfs_filename
+    project_root_path, "deployment", "podman", alma_linux_rootfs_filename
   )
   """The filepath of the AlmaLinux rootfs."""
 
   alma_linux_rootfs_filepath: pathlib.Path = pathlib.Path(
-    "deployment", "src", "offline_resources", alma_linux_rootfs_filename
+    project_root_path, "deployment", "src", "offline_resources", alma_linux_rootfs_filename
   )
   """The filepath of the AlmaLinux rootfs."""
 
@@ -40,51 +40,51 @@ class Constants:
   """The url for downloading the AlmaLinux rootfs."""
 
   post_installation_runner_project_path = pathlib.Path(
-    "src", "c_sharp", "PostInstallationRunner"
+    project_root_path, "src", "c_sharp", "PostInstallationRunner"
   )
   """The path to the PostInstallationRunner C# project."""
 
   post_installation_runner_publish_xml_filepath = pathlib.Path(
-    "src", "c_sharp", "PostInstallationRunner",
+    project_root_path, "src", "c_sharp", "PostInstallationRunner",
     "Properties", "PublishProfiles", "FolderProfile.pubxml"
   )
   """The filepath to the PostInstallationRunner publishing profile."""
 
   post_installation_runner_exe_build_filepath = pathlib.Path(
-    "src", "c_sharp", "PostInstallationRunner",
+    project_root_path, "src", "c_sharp", "PostInstallationRunner",
     "bin", "Release", "net8.0", "publish", "win-x64", "PostInstallationRunner.exe"
   )
   """The filepath to the PostInstallationRunner published .exe file."""
 
   post_installation_runner_exe_filepath = pathlib.Path(
-    "deployment", "src", "PostInstallationRunner.exe"
+    project_root_path, "deployment", "src", "PostInstallationRunner.exe"
   )
   """The filepath to the PostInstallationRunner .exe file that is used in the inno setup script."""
 
   wsl_check_project_path = pathlib.Path(
-    "src", "c_sharp", "PostInstallationRunner"
+    project_root_path, "src", "c_sharp", "PostInstallationRunner"
   )
   """The path to the WslCheck C# project."""
 
   wsl_check_publish_xml_filepath = pathlib.Path(
-    "src", "c_sharp", "WslCheck",
+    project_root_path, "src", "c_sharp", "WslCheck",
     "Properties", "PublishProfiles", "FolderProfile.pubxml"
   )
   """The filepath to the WslCheck publishing profile."""
 
   wsl_check_exe_build_filepath = pathlib.Path(
-    "src", "c_sharp", "WslCheck",
+    project_root_path, "src", "c_sharp", "WslCheck",
     "bin", "Release", "net8.0", "publish", "win-x64", "WslCheck.exe"
   )
   """The filepath to the WslCheck published .exe file."""
 
   wsl_check_exe_filepath = pathlib.Path(
-    "deployment", "src", "WslCheck.exe"
+    project_root_path, "deployment", "src", "WslCheck.exe"
   )
   """The filepath to the WslCheck .exe file that is used in the inno setup script."""
 
   spec_file_for_pyinstaller_filepath = pathlib.Path(
-    "deployment", "pyinstaller", "main.spec"
+    project_root_path, "deployment", "pyinstaller", "main.spec"
   )
   """The filepath for the spec file used for the PyInstaller build."""
 

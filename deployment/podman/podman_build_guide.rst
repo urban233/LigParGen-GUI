@@ -3,11 +3,13 @@ Podman LigParGen Build Guide
 
 Build process
 -------------
-cwd: D:\user_space\ligpargen_offline
-podman build -f .\DOCKERFILE -t alma9_ligpargen:0.1.0.1
-podman run --name almaLigParGen alma9_ligpargen:0.1.0.1
+cd .\deployment\podman (LigParGen-GUI\deployment\podman)
+podman machine start
+podman build -f .\DOCKERFILE -t alma9_ligpargen:1.0.0.0
+podman run --name almaLigParGen alma9_ligpargen:1.0.0.0
 podman export -o alma9-ligpargen-rootfs.tar almaLigParGen
-wsl --import almaLigParGen9 storage\ .\alma9-ligpargen-rootfs.tar
+podman rm almaLigParGen
+podman rmi alma9_ligpargen:1.0.0.0
 
 Useful podman commands
 ----------------------

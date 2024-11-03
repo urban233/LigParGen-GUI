@@ -36,15 +36,13 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Dirs]
 Name: "{commonappdata}\IBCI\wsl"
 Name: "{commonappdata}\IBCI\wsl\LigParGenGUI"
-Name: "{commonappdata}\IBCI\temp"
 Name: "{commonappdata}\IBCI\LigParGenGUI"
 Name: "{commonappdata}\IBCI\LigParGenGUI\assets"
 Name: "{commonappdata}\IBCI\LigParGenGUI\bin"
-Name: "{commonappdata}\IBCI\LigParGenGUI\helpers"
+Name: "{commonappdata}\IBCI\LigParGenGUI\temp"
 
 [Files]
-Source: "src\PostInstallationRunner.exe"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\helpers"; Flags: ignoreversion recursesubdirs createallsubdirs;
-Source: "src\offline_resources\alma9-ligpargen-rootfs.tar"; DestDir: "{commonappdata}\IBCI\temp"; Flags: ignoreversion recursesubdirs createallsubdirs;
+Source: "src\offline_resources\alma9-ligpargen-rootfs.tar"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\temp"; Flags: ignoreversion recursesubdirs createallsubdirs;
 Source: "src\bin\*"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\bin"; Flags: ignoreversion recursesubdirs createallsubdirs;
 Source: "src\assets\logo.ico"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\assets"; Flags: ignoreversion recursesubdirs createallsubdirs;
 
@@ -56,9 +54,30 @@ Name: "{commonstartmenu}\LigParGenGUI"; Filename: "{commonappdata}\IBCI\LigParGe
 Type: filesandordirs; Name: "{commonappdata}\IBCI\LigParGenGUI"
 
 [Code]
-var 
-  tmpResultCode: Integer; 
+var
+  tmpResultCode: Integer;
   PostInstallFailed: Boolean;
+
+function RunPowerShellCommand(Command: String): Boolean;
+var
+  ResultCode: Integer;
+begin
+  // Attempt to execute the PowerShell command
+  Result := Exec(
+    'powershell.exe',                                 // PowerShell executable
+    '-ExecutionPolicy Bypass -Command "' + Command + '"',  // Execution policy bypass and PowerShell command
+    '',                                               // Working directory (empty means current directory)
+    SW_HIDE,                                          // Window style, SW_HIDE hides the PowerShell window
+    ewWaitUntilTerminated,                            // Wait for PowerShell to finish
+    ResultCode                                        // Store the result code here
+  );
+
+  // Set Result to False if the execution failed or returned a non-zero code
+  if not Result or (ResultCode <> 0) then
+    Result := False;
+end;
+
+
 
 procedure InitializeWizard;
 begin
@@ -66,37 +85,64 @@ begin
   PostInstallFailed := False;
 end;
 
+
+
 function DoPostInstallTasks: Boolean;
 // Return True if successful, False if there was an error
+var
+  PowerShellCommand: String;
 begin
   try
-    MsgBox('A post installation task needs to be run. This will take around 5 minutes to complete. Press OK to start.', mbInformation, MB_OK);
-    if Exec('C:\ProgramData\IBCI\LigParGenGUI\helpers\PostInstallationRunner.exe', '', '', SW_HIDE, ewWaitUntilTerminated, tmpResultCode) then // Runs PostInstallationRunner!!
+    MsgBox('A post installation task needs to be run. This will take around 3 minutes to complete. Press OK to start.', mbInformation, MB_OK);
+    if not RunPowerShellCommand('wsl --import almaLigParGen9 "C:\ProgramData\IBCI\wsl\LigParGenGUI" "D:\user_space\projects\deployments\src\offline_resources\alma9-ligpargen-rootfs.tar"') then
     begin
-      // Check the result code of the executed program
-      if tmpResultCode <> 0 then
-      begin
-        // Return False to indicate failure
-        Result := False;
-      end
-      else
-      begin
-        // Task succeeded
-        Result := True;
-      end;
-    end
-    else
-    begin
-      // Failed to execute the external program
       Result := False;
+      Exit;  // Exit early if this command fails
     end;
+
+    if not RunPowerShellCommand('Remove-Item -Path "C:\ProgramData\IBCI\LigParGenGUI\temp\alma9-ligpargen-rootfs.tar" -Force') then
+    begin
+      Result := False;
+      Exit;  // Exit early if this command fails
+    end;
+    // If all commands succeeded, return True
+    Result := True;
   except
-    begin
-      // Return False to indicate failure
-      Result := False;
-    end;
+    // Return False to indicate failure if an exception occurs
+    Result := False;
   end;
 end;
+
+
+
+function DoPostUninstallTasks: Boolean;
+// Return True if successful, False if there was an error
+var
+  PowerShellCommand: String;
+begin
+  try
+    //MsgBox('A post uninstall task needs to be run. This will take around 2 minutes to complete. Press OK to start.', mbInformation, MB_OK);
+    // Run each PowerShell command separately and check success
+    if not RunPowerShellCommand('wsl --unregister almaLigParGen9') then
+    begin
+      Result := False;
+      Exit;  // Exit early if this command fails
+    end;
+
+    if not RunPowerShellCommand('Remove-Item -Path "C:\ProgramData\IBCI\wsl\LigParGenGUI" -Recurse -Force') then
+    begin
+      Result := False;
+      Exit;  // Exit early if this command fails
+    end;
+    // If all commands succeeded, return True
+    Result := True;
+  except
+    // Return False to indicate failure if an exception occurs
+    Result := False;
+  end;
+end;
+
+
 
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
@@ -112,5 +158,27 @@ begin
       MsgBox('The installation was successful. LigParGenGUI will now start automatically.', mbInformation, MB_OK);
       Exec('C:\ProgramData\IBCI\LigParGenGUI\bin\LigParGenGUI.exe', '', '', SW_SHOW, ewNoWait, tmpResultCode)
     end;
+  end;
+end;
+
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  case CurUninstallStep of
+    usUninstall:
+      begin
+        // ...insert code to perform pre-uninstall tasks here...
+      end;
+    usPostUninstall:
+      begin
+        if not DoPostUninstallTasks then
+        begin
+          MsgBox('Uninstallation completed, but some cleanup tasks failed.', mbError, MB_OK);
+        end
+        else
+        begin
+          //MsgBox('Uninstallation was successful, and all cleanup tasks completed.', mbInformation, MB_OK);
+        end;
+      end;
   end;
 end;

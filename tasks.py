@@ -25,12 +25,12 @@ def rootfs(c, version: str = "", check_version=False):
 
 
 @task()
-def build(c, rootfs=False, post_installation_runner=False, wsl_check=False):
+def build(c, rootfs=False, wsl_check=False):
   try:
     # Build & move rootfs to inno setup src dir
     if rootfs:
       tmp_cwd = tasks_util.Constants.podman_build_dir
-      tasks_util.Directory().copy_directory(tasks_util.Constants.wsl2_source_path, tasks_util.Constants.wsl2_source_podman_path)
+      #tasks_util.Directory().copy_directory(tasks_util.Constants.wsl2_source_path, tasks_util.Constants.wsl2_source_podman_path)
       tmp_commands = [
         "podman machine start",
         "podman build -f .\DOCKERFILE -t alma9_ligpargen:1.0.0.0",
@@ -62,12 +62,13 @@ def build(c, rootfs=False, post_installation_runner=False, wsl_check=False):
         # print(f"Finished downloading {tasks_util.Constants.alma_linux_rootfs_filename}.")
       # </editor-fold>
     # Build & move PostInstallationRunner
-    if post_installation_runner:
-      tmp_cwd = tasks_util.Constants.project_root_path
-      tmp_cmd = f"dotnet publish {tasks_util.Constants.post_installation_runner_project_path} /p:PublishProfile={tasks_util.Constants.post_installation_runner_publish_xml_filepath}"
-      tasks_util.InvokePowerShell.run_command(tmp_cmd, tmp_cwd)
-      tasks_util.File().copy(tasks_util.Constants.post_installation_runner_exe_build_filepath,
-                             tasks_util.Constants.post_installation_runner_exe_filepath, overwrite=True)
+    # TODO: This might be removed because the Pascal of Inno Setup manages the post installation runner tasks
+    # if post_installation_runner:
+    #   tmp_cwd = tasks_util.Constants.project_root_path
+    #   tmp_cmd = f"dotnet publish {tasks_util.Constants.post_installation_runner_project_path} /p:PublishProfile={tasks_util.Constants.post_installation_runner_publish_xml_filepath}"
+    #   tasks_util.InvokePowerShell.run_command(tmp_cmd, tmp_cwd)
+    #   tasks_util.File().copy(tasks_util.Constants.post_installation_runner_exe_build_filepath,
+    #                          tasks_util.Constants.post_installation_runner_exe_filepath, overwrite=True)
     if wsl_check:
       tmp_cwd = tasks_util.Constants.project_root_path
       tmp_cmd = f"dotnet publish {tasks_util.Constants.wsl_check_project_path} /p:PublishProfile={tasks_util.Constants.wsl_check_publish_xml_filepath}"

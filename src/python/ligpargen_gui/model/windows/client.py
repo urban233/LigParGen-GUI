@@ -43,6 +43,7 @@ class Client(QtCore.QObject):
         f"{tmp_output_folder}",
       ],
       check=True,
+      creationflags=subprocess.CREATE_NO_WINDOW
     )
 
   def check_progress_status(self):

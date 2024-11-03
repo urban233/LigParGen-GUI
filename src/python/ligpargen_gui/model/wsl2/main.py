@@ -13,10 +13,12 @@ if __name__ == '__main__':
   default_logging.append_to_log_file(logger, "Instantiate server object.", logging.INFO)
   tmp_server = server.Server()
   try:
+    default_logging.append_to_log_file(logger, "Listen for job input ...", logging.INFO)
     if not tmp_server.listen_for_job_input():
       default_logging.append_to_log_file(logger, "Invalid job input!", logging.FATAL)
       tmp_server.send_finished_signal("Job failed! There was an error in the internal job input!", has_failed=True)
       exit(0)
+    default_logging.append_to_log_file(logger, "Running job ...", logging.INFO)
     if not tmp_server.run_job():
       default_logging.append_to_log_file(logger, "Job failed!", logging.FATAL)
       tmp_server.send_finished_signal("Job failed!", has_failed=True)

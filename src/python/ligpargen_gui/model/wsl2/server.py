@@ -44,16 +44,20 @@ class Server:
     """Runs job based on job type."""
     try:
       if self.job_input_data[constants.JobInputDataKeys.JOB_TYPE] == constants.JobTypes.INSTALL_BOSS:
+        default_logging.append_to_log_file(logger, "Job type: INSTALL BOSS", logging.INFO)
         if not self.run_install_boss_job():
           default_logging.append_to_log_file(logger, "Install BOSS software job failed.", logging.ERROR)
           return False
         else:
+          default_logging.append_to_log_file(logger, "Install BOSS software job finished.", logging.INFO)
           return True
       elif self.job_input_data[constants.JobInputDataKeys.JOB_TYPE] == constants.JobTypes.RUN_LIGPARGEN:
+        default_logging.append_to_log_file(logger, "Job type: RUN LIGPARGEN", logging.INFO)
         if not self.run_ligpargen_job():
           default_logging.append_to_log_file(logger, "LigParGen job failed.", logging.ERROR)
           return False
         else:
+          default_logging.append_to_log_file(logger, "LigParGen job finished.", logging.INFO)
           return True
       else:
         return False
@@ -135,6 +139,7 @@ class Server:
   def run_ligpargen_job(self) -> bool:
     try:
       # <editor-fold desc="Preparations">
+      default_logging.append_to_log_file(logger, "Preparing environment ...", logging.INFO)
       tmp_utils = utils.Utils()
       if not tmp_utils.prepare_folder_structure():
         default_logging.append_to_log_file(logger, "Preparing folder structure failed!", logging.ERROR)
@@ -142,15 +147,19 @@ class Server:
       if not tmp_utils.copy_pdb_files_to_wsl2(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]):
         default_logging.append_to_log_file(logger, "Copying pdb files to WSL2 failed!", logging.ERROR)
         return False
+      subprocess.run(["dos2unix", str(constants.Paths.LIGPARGEN_BATCH_FILEPATH)])
+      default_logging.append_to_log_file(logger, "Preparing environment finished.", logging.INFO)
       # </editor-fold>
       tmp_number_of_mols = len(os.listdir(constants.Paths.SCRATCH_DIR)) - 1  # -1 due to results dir
       i = 1
       for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pdb"):
+        default_logging.append_to_log_file(logger, f"Starting LigParGen conversion of {tmp_file} ...", logging.INFO)
         if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
           tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} failed!"
           default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} failed!", logging.ERROR)
         else:
           tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} finished."
+          default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} finished", logging.INFO)
         self._sender_socket.send_json(
           json.dumps({
             "msg": tmp_msg,
@@ -160,6 +169,7 @@ class Server:
         )
         i += 1
       # <editor-fold desc="Post-processing">
+      default_logging.append_to_log_file(logger, "Post processing result files ...", logging.INFO)
       if not tmp_utils.filter_results(self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]):
         return False
       for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_RESULTS_DIR, "*.tinker.*"):
@@ -188,10 +198,8 @@ class Server:
         for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pqr"):
           shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_RESULTS_DIR)
       for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_RESULTS_DIR, "*.*"):
-        subprocess.run(
-          ["unix2dos", tmp_file],
-          creationflags=subprocess.CREATE_NO_WINDOW
-        )
+        subprocess.run(["unix2dos", tmp_file])
+      default_logging.append_to_log_file(logger, "Post processing result files finished.", logging.INFO)
       # </editor-fold>
       return True
     except Exception as e:
@@ -200,7 +208,7 @@ class Server:
 
   def run_ligpargen_command(self, a_file: pathlib.Path) -> bool:
     try:
-      subprocess.run(
+      tmp_complete_process = subprocess.run(
         ["bash", str(constants.Paths.LIGPARGEN_BATCH_FILEPATH),
          "-i", str(a_file),
          "-n", str(a_file).replace(a_file.suffix, ""),
@@ -209,9 +217,15 @@ class Server:
          "-cgen", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_CHARGE_MODEL])],
         cwd=str(constants.Paths.SCRATCH_DIR),  # The cwd needs to be set to ensure that the temporarily files of ligpargen are stored there!
         timeout=50,
-        creationflags=subprocess.CREATE_NO_WINDOW
+        capture_output=True
       )
-      return True
+      default_logging.append_to_log_file(logger, f"The value of the CompletedProcess object of the LigParGen command is: {tmp_complete_process}", logging.DEBUG)
+      if tmp_complete_process.returncode != 0:
+        default_logging.append_to_log_file(logger, "Error: Usage or syntax error occurred.", logging.ERROR)
+        default_logging.append_to_log_file(logger, f"Error output: {tmp_complete_process.stderr.decode()}", logging.ERROR)
+        return False
+      else:
+        return True
     except Exception as e:
       default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
       return False

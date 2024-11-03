@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import shutil
 import subprocess
 
 from PyQt6 import QtWebEngineWidgets, QtCore
@@ -15,7 +16,7 @@ from ligpargen_gui.model.data_classes import ligpargen_options
 from ligpargen_gui.model.jobs import ligpargen_job_input, install_boss_job_input
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.qmodel import job_progress_model
-from ligpargen_gui.model.util import exception, compare, post_processing, filesystem_util
+from ligpargen_gui.model.util import exception, compare, post_processing, filesystem_util, powershell
 from ligpargen_gui.model.windows import client
 
 logger = default_logging.setup_logger(__file__)
@@ -239,6 +240,19 @@ class MainFrameController:
       default_logging.append_to_log_file(logger, f"Unknown job status after job has finished: {self.client.job_status}", logging.WARNING)
 
   def start_server(self) -> None:
+    tmp_wsl2_src_folder: str = filesystem_util.windows_to_wsl_path(
+      str(pathlib.Path(
+          model_definitions.ModelDefinitions.PROGRAM_SRC_PATH,
+          "python", "ligpargen_gui", "model", "wsl2"
+        ))
+    )
+    if pathlib.Path(r"\\wsl.localhost\almaLigParGen9\home\alma_ligpargen\ligpargen_gui\wsl2").exists():
+      shutil.rmtree(r"\\wsl.localhost\almaLigParGen9\home\alma_ligpargen\ligpargen_gui\wsl2")
+    powershell.await_run_wsl_command(["sudo", "cp", "-r", tmp_wsl2_src_folder, "/home/alma_ligpargen/ligpargen_gui/wsl2"])
+    powershell.await_run_wsl_command(
+      ["sudo", "chmod", "+x", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"]
+    )
+    # TODO: Add a dos2unix conversion to ensure that all python files have the correct LF!
     subprocess.Popen(
       [
         "wsl",
