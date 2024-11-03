@@ -11,6 +11,12 @@ class Constants:
   project_root_path = pathlib.Path(__file__).parent.absolute()
   """The root path of the project."""
 
+  wsl2_source_path = pathlib.Path(project_root_path, "src", "python", "ligpargen_gui", "model", "wsl2")
+  """The path of the wsl2 source directory."""
+
+  wsl2_source_podman_path = pathlib.Path(project_root_path, "deployment", "podman", "wsl2")
+  """The path of the wsl2 source directory."""
+
   build_output_path: pathlib.Path = pathlib.Path(project_root_path, "_build", "output")
   """The path to the build output directory."""
 
@@ -162,10 +168,10 @@ class Directory:
 
       if not Directory.purge(tmp_destination_dir):
         return False
-      if tmp_destination_dir.exists():
+      if not tmp_destination_dir.exists():
         tmp_destination_dir.mkdir(parents=True)
 
-      shutil.copytree(tmp_source_dir, tmp_destination_dir)
+      shutil.copytree(tmp_source_dir, tmp_destination_dir, dirs_exist_ok=True)
       return True
     except Exception as e:
       return False

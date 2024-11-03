@@ -25,11 +25,11 @@ public class ConstantPaths
     /// <summary>
     /// Wsl2 folder of LigParGen.
     /// </summary>
-    public static readonly string WSL_LIGPARGEN_GUI_DIR = @"C:\ProgramData\IBCI\wsl\LigParGenGUI";
+    public static readonly string WSL_LIGPARGEN_GUI_DIR = $@"{WSL_DIR}\LigParGenGUI";
     /// <summary>
     /// Wsl2 distro storage folder of LigParGenGUI.
     /// </summary>
-    public static readonly string WSL_STORAGE_DIR = $@"C:\ProgramData\IBCI\wsl\LigParGen\storage";
+    public static readonly string WSL_STORAGE_DIR = $@"{WSL_LIGPARGEN_GUI_DIR}\storage";
     /// <summary>
     /// Filepath of Wsl2 distro vhdx.
     /// </summary>

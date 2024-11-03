@@ -23,6 +23,7 @@ class Client(QtCore.QObject):
     self._sender_socket.connect("tcp://127.0.0.1:8033")
     self._recv_socket = context.socket(zmq.PULL)
     self._recv_socket.connect("tcp://127.0.0.1:8034")
+    self.job_status = ""
 
   def send_job_input(self, a_job_input_as_json: str):
     self._sender_socket.send_json(a_job_input_as_json)
@@ -46,6 +47,12 @@ class Client(QtCore.QObject):
 
   def check_progress_status(self):
     tmp_progress_info: dict = {"status": "started"}
-    while tmp_progress_info["status"] != "finished":
+    while tmp_progress_info["status"] != "finished" or tmp_progress_info["status"] != "failed":
       tmp_progress_info: dict = json.loads(self._recv_socket.recv_json())
       self.progress_signal.emit(tuple(tmp_progress_info.values()))
+      if tmp_progress_info["status"] == "failed":
+        self.job_status = "failed"
+        break
+      elif tmp_progress_info["status"] == "finished":
+        self.job_status = "finished"
+        break

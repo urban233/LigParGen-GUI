@@ -2,13 +2,30 @@
 import sys
 sys.path.append("/home/alma_ligpargen/ligpargen_gui")
 
+import logging
 from wsl2 import server
+from wsl2 import default_logging, exception
+
+logger = default_logging.setup_logger(__file__)
+
 
 if __name__ == '__main__':
+  default_logging.append_to_log_file(logger, "Instantiate server object.", logging.INFO)
   tmp_server = server.Server()
-  tmp_server.listen_for_job_input()
-  if not tmp_server.run_job():
-    print("Job failed!")
-  else:
-    print("Job finished successfully!")
-  tmp_server.send_finished_signal()
+  try:
+    if not tmp_server.listen_for_job_input():
+      default_logging.append_to_log_file(logger, "Invalid job input!", logging.FATAL)
+      tmp_server.send_finished_signal("Job failed! There was an error in the internal job input!", has_failed=True)
+      exit(0)
+    if not tmp_server.run_job():
+      default_logging.append_to_log_file(logger, "Job failed!", logging.FATAL)
+      tmp_server.send_finished_signal("Job failed!", has_failed=True)
+      exit(0)
+    else:
+      default_logging.append_to_log_file(logger, "Job finished successfully.", logging.INFO)
+      tmp_server.send_finished_signal("Job finished successfully.")
+      exit(0)
+  except Exception as e:
+    default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.FATAL)
+    tmp_server.send_finished_signal("Job failed with an internal error.", has_failed=True)
+    exit(0)

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Activate the conda environment named 'py37'
-source activate py37
+source ~/miniconda/etc/profile.d/conda.sh
+conda activate py37
 
 # Check if ligpargen command is available
 if ! command -v ligpargen &> /dev/null; then

@@ -10,18 +10,18 @@ class ModelDefinitions:
   Should be used as singleton class!
   """
   # <editor-fold desc="For development purposes">
-  PROGRAM_ROOT_PATH = pathlib.Path(__file__).parent.parent.parent.parent.parent.parent
+  #PROGRAM_ROOT_PATH = pathlib.Path(__file__).parent.parent.parent.parent.parent.parent
   """Path to the root of the program."""
-  PROGRAM_SRC_PATH = r"C:\Users\student\github_repos\LigParGen-GUI\src"
+  #PROGRAM_SRC_PATH = r"C:\Users\student\github_repos\LigParGen-GUI\src"
   # </editor-fold>
 
   # <editor-fold desc="Deployment paths">
-  #PROGRAM_ROOT_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal"
+  PROGRAM_ROOT_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal"
   """Path to the root of the program."""
-  #PROGRAM_SRC_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal\\src"
+  PROGRAM_SRC_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal\\src"
   # </editor-fold>
 
-  DISTRO_NAME = "alma9LigParGen0205"
+  DISTRO_NAME = "almaLigParGen9"
   """Name of the WSL2 distro"""
   SETTINGS_FILENAME = 'settings.json'
   """Default settings filename"""

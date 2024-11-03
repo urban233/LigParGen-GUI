@@ -166,8 +166,9 @@ test_files/
 deployment/src/bin
 deployment/src/PostInstallationRunner.exe
 deployment/src/WslCheck.exe
-deployment/out
 deployment/src/offline_resources/alma9-ligpargen-rootfs.tar
+deployment/podman/wsl2
+deployment/out
 
 # C#
 src/c_sharp/.vs

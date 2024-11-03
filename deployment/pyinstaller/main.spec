@@ -1,14 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-distpath = '../src'   # Custom output path
-
 a = Analysis(
     ['..\\..\\src\\python\\ligpargen_gui\\gui\\main\\main.py'],
     pathex=[],
     binaries=[],
     datas=[
         ('../../assets/', 'assets'),  # Copies resources folder to dist/main/resources
-        ('../../src/', 'src')
+        ('../../src/python', 'src/python')
     ],
     hiddenimports=[],
     hookspath=[],
@@ -30,7 +28,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

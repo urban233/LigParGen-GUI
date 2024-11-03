@@ -209,21 +209,64 @@ class MainFrameController:
 
   def __await_install_boss(self) -> None:
     """Awaits the installation of the boss software."""
-    self.job_progress_model.add_job_progress_message("Installing BOSS software finished!")
-    self.basic_controllers["InstallBoss"].boss_is_installed = True
-    self.basic_controllers["InstallBoss"].get_dialog().close()
-    self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))
-    tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
-      "The installation of the BOSS software was successful.",
-      "Install BOSS Finished",
-      custom_message_box.CustomMessageBoxIcons.INFORMATION.value,
-    )
-    tmp_job_failed_msg_box.exec()
-    self.basic_controllers["JobProgress"].get_dialog().ui.btn_cancel.setEnabled(False)
-    self.basic_controllers["JobProgress"].get_dialog().ui.btn_ok.setEnabled(True)
+    self.shutdown_wsl2_distro()
+    if self.client.job_status == "failed":
+      self.job_progress_model.add_job_progress_message("Installing BOSS software failed!")
+      self.basic_controllers["InstallBoss"].boss_is_installed = False
+      self.basic_controllers["JobProgress"].set_progress_bar_value(int(0))
+      tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
+        "The installation of the BOSS software failed!",
+        "Install BOSS Failed",
+        custom_message_box.CustomMessageBoxIcons.ERROR.value,
+      )
+      tmp_job_failed_msg_box.exec()
+      self.basic_controllers["InstallBoss"].enable_all_input_widgets()
+      self.basic_controllers["JobProgress"].get_dialog().close()
+    elif self.client.job_status == "finished":
+      self.job_progress_model.add_job_progress_message("Installing BOSS software finished!")
+      self.basic_controllers["InstallBoss"].boss_is_installed = True
+      self.basic_controllers["InstallBoss"].get_dialog().close()
+      self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))
+      tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
+        "The installation of the BOSS software was successful.",
+        "Install BOSS Finished",
+        custom_message_box.CustomMessageBoxIcons.INFORMATION.value,
+      )
+      tmp_job_failed_msg_box.exec()
+      self.basic_controllers["JobProgress"].get_dialog().ui.btn_cancel.setEnabled(False)
+      self.basic_controllers["JobProgress"].get_dialog().ui.btn_ok.setEnabled(True)
+    else:
+      default_logging.append_to_log_file(logger, f"Unknown job status after job has finished: {self.client.job_status}", logging.WARNING)
 
   def start_server(self) -> None:
-    subprocess.Popen(["wsl", "-d", model_definitions.ModelDefinitions.DISTRO_NAME, "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"])
+    subprocess.Popen(
+      [
+        "wsl",
+        "-d", model_definitions.ModelDefinitions.DISTRO_NAME,
+        "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"
+      ],
+      creationflags=subprocess.CREATE_NO_WINDOW
+    )
+
+  def shutdown_wsl2_distro(self) -> None:
+    """Shuts down the WSL2 distro."""
+    # Clean scratch directory
+    subprocess.run(
+      [
+        "wsl",
+        "-d", model_definitions.ModelDefinitions.DISTRO_NAME,
+        "-u", "alma_ligpargen",
+        "rm", "-r", "/home/alma_ligpargen/ligpargen_gui/scratch"
+       ],
+      creationflags=subprocess.CREATE_NO_WINDOW
+    )
+    subprocess.run(
+      [
+        "wsl",
+        "--terminate", model_definitions.ModelDefinitions.DISTRO_NAME
+      ],
+      creationflags=subprocess.CREATE_NO_WINDOW
+    )
 
   # <editor-fold desc="Structure input">
   def __slot_choose_structure_input_path_from_filesystem(self) -> None:
@@ -351,6 +394,7 @@ class MainFrameController:
     self.client.copy_results(a_job_input.output_folder)
 
   def __await_run_ligpargen_job(self):
+    self.shutdown_wsl2_distro()
     self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))
     tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
       "LigParGen job failed!\nPlease consult the log file to get more information.",

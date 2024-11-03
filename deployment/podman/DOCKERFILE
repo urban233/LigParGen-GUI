@@ -30,6 +30,11 @@ WORKDIR /home/alma_ligpargen
 COPY ligpargen_batch /home/alma_ligpargen/
 RUN chmod +x ./ligpargen_batch
 RUN chown -R alma_ligpargen:alma_ligpargen ./ligpargen_batch
+
+COPY wsl2 /home/alma_ligpargen/ligpargen_gui/wsl2
+RUN chmod +x /home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh
+RUN chown -R alma_ligpargen:alma_ligpargen /home/alma_ligpargen/ligpargen_gui
+RUN find /home/alma_ligpargen/ligpargen_gui -type f -exec dos2unix {} +
 # Switch to the new user
 USER alma_ligpargen
 

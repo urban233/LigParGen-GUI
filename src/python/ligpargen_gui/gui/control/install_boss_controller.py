@@ -84,3 +84,11 @@ class InstallBossController(base_controller.BaseController):
     self._dialog.btn_boss_tar_gz_path.setEnabled(False)
     self._dialog.btn_ok.setEnabled(False)
     self._dialog.btn_cancel.setEnabled(False)
+
+  def enable_all_input_widgets(self):
+    """Enables all input widgets."""
+    self._dialog.txt_boss_tar_gz_path.clear()
+    self._dialog.txt_boss_tar_gz_path.setEnabled(True)
+    self._dialog.btn_boss_tar_gz_path.setEnabled(True)
+    self._dialog.btn_ok.setEnabled(False)
+    self._dialog.btn_cancel.setEnabled(True)

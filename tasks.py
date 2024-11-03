@@ -30,6 +30,7 @@ def build(c, rootfs=False, post_installation_runner=False, wsl_check=False):
     # Build & move rootfs to inno setup src dir
     if rootfs:
       tmp_cwd = tasks_util.Constants.podman_build_dir
+      tasks_util.Directory().copy_directory(tasks_util.Constants.wsl2_source_path, tasks_util.Constants.wsl2_source_podman_path)
       tmp_commands = [
         "podman machine start",
         "podman build -f .\DOCKERFILE -t alma9_ligpargen:1.0.0.0",
@@ -74,7 +75,8 @@ def build(c, rootfs=False, post_installation_runner=False, wsl_check=False):
       tasks_util.File().copy(tasks_util.Constants.wsl_check_exe_build_filepath,
                              tasks_util.Constants.wsl_check_exe_filepath, overwrite=True)
     # Build & move LigParGenGUI (with PyInstaller)
-    c.run(f"pyinstaller {tasks_util.Constants.spec_file_for_pyinstaller_filepath} --distpath ..\\src -y")
+    tasks_util.Directory().purge(pathlib.Path(tasks_util.Constants.project_root_path, "deployment", "src", "bin"))
+    c.run(f"pyinstaller {tasks_util.Constants.spec_file_for_pyinstaller_filepath} --distpath deployment/src -y")
     # Build inno setup .exe
     subprocess.run(
       [
@@ -82,6 +84,7 @@ def build(c, rootfs=False, post_installation_runner=False, wsl_check=False):
         str(tasks_util.Constants.inno_setup_script_filepath)
       ]
     )
+    tasks_util.Directory().purge(pathlib.Path(tasks_util.Constants.project_root_path, "deployment", "src", "bin"))
   except Exception as e:
     print(e)
   finally:

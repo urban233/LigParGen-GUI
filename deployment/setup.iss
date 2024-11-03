@@ -27,14 +27,13 @@ UninstallDisplayName=LigParGenGUI
 UninstallDisplayIcon={app}\assets\logo.ico
 LicenseFile=LICENSE.txt
 ; This is necessary because the setup will exceed 2 GB (due to almalinux rootfs)
-DiskSpanning=yes
+DiskSpanning=no
 DiskSliceSize=2100000000
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Dirs]
-Name: "{commonappdata}\IBCI"
 Name: "{commonappdata}\IBCI\wsl"
 Name: "{commonappdata}\IBCI\wsl\LigParGenGUI"
 Name: "{commonappdata}\IBCI\temp"
@@ -44,9 +43,9 @@ Name: "{commonappdata}\IBCI\LigParGenGUI\bin"
 Name: "{commonappdata}\IBCI\LigParGenGUI\helpers"
 
 [Files]
-Source: "src\PostInstallationRunner.exe"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\helpers"; Flags: ignoreversion;
-Source: "src\offline_resources\alma9-ligpargen-rootfs.tar"; DestDir: "{commonappdata}\IBCI\temp"; Flags: ignoreversion;
-Source: "src\bin\*"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\bin"; Flags: ignoreversion recursesubdirs;
+Source: "src\PostInstallationRunner.exe"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\helpers"; Flags: ignoreversion recursesubdirs createallsubdirs;
+Source: "src\offline_resources\alma9-ligpargen-rootfs.tar"; DestDir: "{commonappdata}\IBCI\temp"; Flags: ignoreversion recursesubdirs createallsubdirs;
+Source: "src\bin\*"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\bin"; Flags: ignoreversion recursesubdirs createallsubdirs;
 Source: "src\assets\logo.ico"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\assets"; Flags: ignoreversion recursesubdirs createallsubdirs;
 
 [Icons]

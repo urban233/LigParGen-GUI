@@ -67,7 +67,7 @@ class CustomMessageBox(QtWidgets.QDialog):
     #self.setWindowIcon(QtGui.QIcon(constants.PLUGIN_LOGO_FILEPATH))
     styles_utils.set_stylesheet(self)
     self.setWindowFlags(
-        self.windowFlags() ^ QtCore.Qt.WindowType.WindowContextHelpButtonHint
+      self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint
     )
     self.setWindowTitle("Generic Window Title")
     self.setModal(True)

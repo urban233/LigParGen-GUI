@@ -1,9 +1,16 @@
 import glob
+import hashlib
+import json
+import logging
 import os
 import pathlib
 import shutil
+import subprocess
 
 from wsl2 import constants
+from wsl2 import default_logging, exception
+
+logger = default_logging.setup_logger(__file__)
 
 
 class Utils:
@@ -18,7 +25,7 @@ class Utils:
       constants.Paths.SCRATCH_RESULTS_DIR.mkdir()
       return True
     except Exception as e:
-      print(e)  # TODO: Add logger message here
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
       return False
 
   def copy_pdb_files_to_wsl2(self, an_input_folder: pathlib.Path) -> bool:
@@ -28,7 +35,7 @@ class Utils:
         shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_DIR)
       return True
     except Exception as e:
-      print(e)  # TODO: Add logger message here
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
       return False
 
   def filter_results(self, the_result_file_types: list) -> bool:
@@ -39,7 +46,7 @@ class Utils:
           shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_RESULTS_DIR)
       return True
     except Exception as e:
-      print(e)  # TODO: Add logger message here
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
       return False
 
   def loop_over_directory_with_wildcard(self, a_path: pathlib.Path, a_wildcard: str) -> list:
@@ -53,5 +60,128 @@ class Utils:
         shutil.copy(pathlib.Path(tmp_file), a_dest_folder)
       return True
     except Exception as e:
-      print(e)  # TODO: Add logger message here
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
       return False
+
+  def run_shell_command(self, a_cmd: list) -> bool:
+    """Runs a single shell command."""
+    try:
+      subprocess.run(a_cmd, cwd="/home/alma_ligpargen/")
+      return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
+
+  def generate_snapshot(self, directory, snapshot_file):
+    """Generates a JSON snapshot of a directory's structure and file contents.
+
+    This function recursively walks through a directory, capturing the relative
+    path of each subdirectory and file, along with a hash of each file's content.
+    The snapshot is saved in JSON format to a specified file.
+
+    Args:
+        directory (str): Path to the directory to snapshot.
+        snapshot_file (str): Path to the file where the snapshot will be saved.
+    """
+    try:
+      snapshot = {}
+      for root, _, files in os.walk(directory):
+        rel_path = os.path.relpath(root, directory)  # Get relative path from the base directory
+        snapshot[rel_path] = {}
+
+        for file in files:
+          file_path = os.path.join(root, file)
+          file_hash = self.hash_file(file_path)
+          snapshot[rel_path][file] = file_hash
+
+      with open(snapshot_file, 'w') as snapshot_file_handle:
+        json.dump(snapshot, snapshot_file_handle, indent=2)
+      default_logging.append_to_log_file(logger, f"Snapshot of {directory} saved to {snapshot_file}", logging.DEBUG)
+      return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
+
+  def hash_file(self, file_path) -> str:
+    """Generates an MD5 hash of a file's contents.
+
+    This function reads a file in chunks and computes an MD5 hash to
+    uniquely identify its contents.
+
+    Args:
+        file_path (str): Path to the file to hash.
+
+    Returns:
+        str: The MD5 hash of the file content.
+    """
+    try:
+      hash_md5 = hashlib.md5()
+      with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+          hash_md5.update(chunk)
+      return hash_md5.hexdigest()
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return ""
+
+  def compare_directory_to_snapshot(self, directory, snapshot_file) -> bool:
+    """Compares a directory against a pre-generated snapshot for structure and content.
+
+    This function checks if the specified directory has the same structure and file
+    contents as the snapshot. It verifies that each file and subdirectory exists and
+    that each file's contents match the recorded hash.
+
+    Args:
+        directory (str): Path to the directory to compare.
+        snapshot_file (str): Path to the JSON snapshot file to compare against.
+
+    Returns:
+        bool: True if the directory matches the snapshot, False otherwise.
+    """
+    try:
+      with open(snapshot_file, 'r') as f:
+        snapshot = json.load(f)
+
+      for rel_path, files in snapshot.items():
+        current_dir = os.path.join(directory, rel_path)
+        # Check if each subdirectory exists in the current directory
+        if not os.path.isdir(current_dir):
+          default_logging.append_to_log_file(logger, f"Missing directory: {current_dir}", logging.WARNING)
+          return False
+
+        for file, expected_hash in files.items():
+          file_path = os.path.join(current_dir, file)
+          # Check if each file exists in the current directory
+          if not os.path.isfile(file_path):
+            default_logging.append_to_log_file(logger, f"Missing file: {file_path}", logging.WARNING)
+            return False
+          # Check if each file's contents match the expected hash
+          actual_hash = self.hash_file(file_path)
+          if actual_hash != expected_hash:
+            default_logging.append_to_log_file(logger, f"File content mismatch: {file_path}", logging.WARNING)
+            return False
+      default_logging.append_to_log_file(logger, "Directory matches the snapshot.", logging.INFO)
+      return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
+
+  def windows_to_wsl_path(self, windows_path: str) -> str:
+    """Convert a Windows path to a Linux-style WSL path.
+
+    Args:
+        windows_path (str): The Windows file path (e.g., "C:\\Users\\username\\file.txt").
+
+    Returns:
+        str: The Linux-style WSL path (e.g., "/mnt/c/Users/username/file.txt").
+    """
+    try:
+      linux_path = windows_path.replace("\\", "/")
+      # Extract the drive letter and replace with /mnt/<drive>
+      if len(linux_path) > 1 and linux_path[1] == ':':
+        drive_letter = linux_path[0].lower()
+        linux_path = f"/mnt/{drive_letter}{linux_path[2:]}"
+      return linux_path
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return ""

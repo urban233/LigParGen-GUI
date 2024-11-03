@@ -1,10 +1,10 @@
-import glob
 import json
 import logging
 import os.path
 import pathlib
 import shutil
 import subprocess
+
 import zmq
 from wsl2 import constants, utils
 from wsl2 import post_processing
@@ -23,68 +23,180 @@ class Server:
     self._sender_socket.bind("tcp://127.0.0.1:8034")
     self.job_input_data: dict = {}
 
-  def listen_for_job_input(self):
-    self.job_input_data: dict = json.loads(self._recv_socket.recv_json())
-    tmp_input_folder: str = self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]
-    tmp_input_folder = tmp_input_folder.replace("C:\\Users", "/mnt/c/Users")
-    tmp_input_folder = tmp_input_folder.replace("\\", "/")
-    self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER] = tmp_input_folder
-    tmp_output_folder: str = self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER]
-    tmp_output_folder = tmp_output_folder.replace("C:\\Users", "/mnt/c/Users")
-    tmp_output_folder = tmp_output_folder.replace("\\", "/")
-    self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER] = tmp_output_folder
+  def listen_for_job_input(self) -> bool:
+    try:
+      tmp_utils = utils.Utils()
+      self.job_input_data: dict = json.loads(self._recv_socket.recv_json())
+      if self.job_input_data[constants.JobInputDataKeys.JOB_TYPE] == constants.JobTypes.INSTALL_BOSS:
+        self.job_input_data[constants.JobInputDataKeys.BOSS_TAR_GZ_FILEPATH] = tmp_utils.windows_to_wsl_path(self.job_input_data[constants.JobInputDataKeys.BOSS_TAR_GZ_FILEPATH])
+      elif self.job_input_data[constants.JobInputDataKeys.JOB_TYPE] == constants.JobTypes.RUN_LIGPARGEN:
+        self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER] = tmp_utils.windows_to_wsl_path(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER])
+        self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER] = tmp_utils.windows_to_wsl_path(self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER])
+      else:
+        default_logging.append_to_log_file(logger, "Unknown job type!", logging.ERROR)
+        return False
+      return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
 
   def run_job(self) -> bool:
-    # <editor-fold desc="Preparations">
-    tmp_utils = utils.Utils()
-    if not tmp_utils.prepare_folder_structure():
-      default_logging.append_to_log_file(logger, "Preparing folder structure failed!", logging.FATAL)
-      return False
-    if not tmp_utils.copy_pdb_files_to_wsl2(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]):
-      default_logging.append_to_log_file(logger, "Copying pdb files to WSL2 failed!", logging.FATAL)
-      return False
-    # </editor-fold>
-    tmp_number_of_mols = len(os.listdir(constants.Paths.SCRATCH_DIR)) - 1  # -1 due to results dir
-    i = 1
-    for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pdb"):
-      if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
-        tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} failed!"
-        default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} failed!", logging.ERROR)
+    """Runs job based on job type."""
+    try:
+      if self.job_input_data[constants.JobInputDataKeys.JOB_TYPE] == constants.JobTypes.INSTALL_BOSS:
+        if not self.run_install_boss_job():
+          default_logging.append_to_log_file(logger, "Install BOSS software job failed.", logging.ERROR)
+          return False
+        else:
+          return True
+      elif self.job_input_data[constants.JobInputDataKeys.JOB_TYPE] == constants.JobTypes.RUN_LIGPARGEN:
+        if not self.run_ligpargen_job():
+          default_logging.append_to_log_file(logger, "LigParGen job failed.", logging.ERROR)
+          return False
+        else:
+          return True
       else:
-        tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} finished."
-      self._sender_socket.send_json(
-        json.dumps({
-          "msg": tmp_msg,
-          "finished_mols": (i, tmp_number_of_mols),
-          "status": "in-progress"
-        })
-      )
-      i += 1
-    # <editor-fold desc="Post-processing">
-    if not tmp_utils.filter_results(self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]):
-      return False
-    for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_RESULTS_DIR, "*.tinker.*"):
-      tmp_path: pathlib.Path = pathlib.Path(tmp_file)
-      if tmp_path.suffix == ".xyz":
-        post_processing.post_process_tinker_xyz_file(tmp_path)
-        os.rename(tmp_path, tmp_file.replace(".tinker.xyz", ".xyz"))
-      elif tmp_path.suffix == ".key":
-        os.rename(tmp_path, tmp_file.replace(".tinker.key", ".key"))
-      else:
-        print(f"In {tmp_path} exists no valid tinker file extension!")
         return False
-    if "apbs.pqr" in self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]:
-      for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pqr"):
-        shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_RESULTS_DIR)
-    for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_RESULTS_DIR, "*.*"):
-      subprocess.run(["unix2dos", tmp_file])
-    # </editor-fold>
-    # try:
-    #   tmp_utils.copy_files_to_windows(constants.Paths.SCRATCH_RESULTS_DIR, self.job_input_data[constants.JobInputDataKeys.OUTPUT_FOLDER])
-    # except Exception as e:
-    #   default_logging.append_to_log_file(logger, f"An error occurred while copying results: {e}", logging.ERROR)
-    #   return False
-    return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
+
+  def run_install_boss_job(self) -> bool:
+    """Runs the 'install boss' job."""
+    try:
+      tmp_utils = utils.Utils()
+      pathlib.Path("/home/alma_ligpargen/BOSS_FILES").mkdir(exist_ok=True)
+      # <editor-fold desc="Copy tar into WSL2">
+      self.send_progress("Copy BOSS archive into WSL2 ...", (3, 10))
+      if not tmp_utils.run_shell_command(
+        ["cp", self.job_input_data[constants.JobInputDataKeys.BOSS_TAR_GZ_FILEPATH], "/home/alma_ligpargen/BOSS_FILES/"]
+      ):
+        tmp_msg = "Copying the boss.tar.gz into the WSL2 distro failed!"
+        default_logging.append_to_log_file(logger, tmp_msg, logging.ERROR)
+        self._sender_socket.send_json(
+          json.dumps({
+            "msg": tmp_msg,
+            "finished_mols": (3, 10),
+            "status": "in-progress"
+          })
+        )
+        return False
+      # </editor-fold>
+      # <editor-fold desc="Unpack tar file">
+      self.send_progress("Unpack BOSS archive ...", (6, 10))
+      if not tmp_utils.run_shell_command(
+        ["tar", "-xf", "/home/alma_ligpargen/BOSS_FILES/boss0824.tar.gz", "-C", "/home/alma_ligpargen"]
+      ):
+        tmp_msg = "Unpacking the boss.tar.gz failed!"
+        default_logging.append_to_log_file(logger, tmp_msg, logging.ERROR)
+        self._sender_socket.send_json(
+          json.dumps({
+            "msg": tmp_msg,
+            "finished_mols": (6, 10),
+            "status": "in-progress"
+          })
+        )
+        return False
+      # </editor-fold>
+      # <editor-fold desc="Verify boss files">
+      self.send_progress("Verify BOSS installation files ...", (7, 10))
+      if not tmp_utils.compare_directory_to_snapshot(
+              "/home/alma_ligpargen/boss", "/home/alma_ligpargen/ligpargen_gui/wsl2/boss_snapshot.json"
+      ):
+        tmp_msg = "The given boss directory does not contain all files that it should!"
+        default_logging.append_to_log_file(logger, tmp_msg, logging.ERROR)
+        self._sender_socket.send_json(
+          json.dumps({
+            "msg": tmp_msg,
+            "finished_mols": (7, 10),
+            "status": "in-progress"
+          })
+        )
+        return False
+      # </editor-fold>
+      # <editor-fold desc="Change ownership to alma_ligpargen">
+      if not tmp_utils.run_shell_command(["chown", "-R", "alma_ligpargen:alma_ligpargen", "/home/alma_ligpargen/boss"]):
+        tmp_msg = "Changing the ownership of the boss directory failed!"
+        default_logging.append_to_log_file(logger, tmp_msg, logging.ERROR)
+        self._sender_socket.send_json(
+          json.dumps({
+            "msg": tmp_msg,
+            "finished_mols": (7, 10),
+            "status": "in-progress"
+          })
+        )
+        return False
+      # </editor-fold>
+      return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
+
+  def run_ligpargen_job(self) -> bool:
+    try:
+      # <editor-fold desc="Preparations">
+      tmp_utils = utils.Utils()
+      if not tmp_utils.prepare_folder_structure():
+        default_logging.append_to_log_file(logger, "Preparing folder structure failed!", logging.ERROR)
+        return False
+      if not tmp_utils.copy_pdb_files_to_wsl2(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]):
+        default_logging.append_to_log_file(logger, "Copying pdb files to WSL2 failed!", logging.ERROR)
+        return False
+      # </editor-fold>
+      tmp_number_of_mols = len(os.listdir(constants.Paths.SCRATCH_DIR)) - 1  # -1 due to results dir
+      i = 1
+      for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pdb"):
+        if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
+          tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} failed!"
+          default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} failed!", logging.ERROR)
+        else:
+          tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} finished."
+        self._sender_socket.send_json(
+          json.dumps({
+            "msg": tmp_msg,
+            "finished_mols": (i, tmp_number_of_mols),
+            "status": "in-progress"
+          })
+        )
+        i += 1
+      # <editor-fold desc="Post-processing">
+      if not tmp_utils.filter_results(self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]):
+        return False
+      for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_RESULTS_DIR, "*.tinker.*"):
+        tmp_path: pathlib.Path = pathlib.Path(tmp_file)
+        # <editor-fold desc="Post-process TINKER .xyz file">
+        if tmp_path.suffix == ".xyz":
+          if not post_processing.post_process_tinker_xyz_file(tmp_path):
+            tmp_msg = f"Could not post-process the file {tmp_path.name}!"
+            default_logging.append_to_log_file(logger, tmp_msg, logging.WARNING)
+            self._sender_socket.send_json(
+              json.dumps({
+                "msg": tmp_msg,
+                "finished_mols": (i, tmp_number_of_mols),
+                "status": "in-progress"
+              })
+            )
+          else:
+            os.rename(tmp_path, tmp_file.replace(".tinker.xyz", ".xyz"))
+        # </editor-fold>
+        elif tmp_path.suffix == ".key":
+          os.rename(tmp_path, tmp_file.replace(".tinker.key", ".key"))
+        else:
+          default_logging.append_to_log_file(logger, f"In {tmp_path} exists no valid tinker file extension!", logging.ERROR)
+          return False
+      if "apbs.pqr" in self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]:
+        for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pqr"):
+          shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_RESULTS_DIR)
+      for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_RESULTS_DIR, "*.*"):
+        subprocess.run(
+          ["unix2dos", tmp_file],
+          creationflags=subprocess.CREATE_NO_WINDOW
+        )
+      # </editor-fold>
+      return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
 
   def run_ligpargen_command(self, a_file: pathlib.Path) -> bool:
     try:
@@ -96,19 +208,42 @@ class Server:
          "-o", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOL_OPT_ITER]),
          "-cgen", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_CHARGE_MODEL])],
         cwd=str(constants.Paths.SCRATCH_DIR),  # The cwd needs to be set to ensure that the temporarily files of ligpargen are stored there!
-        timeout=50
+        timeout=50,
+        creationflags=subprocess.CREATE_NO_WINDOW
       )
       return True
     except Exception as e:
-      print(e)  # TODO: Add logger message here
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
       return False
 
-  def send_finished_signal(self):
-    print("Sending ...")
-    self._sender_socket.send_json(
-      json.dumps({
-        "msg": "Finished LigParGen job.",
-        "finished_mols": (0, 1),
-        "status": "finished"
-      })
-    )
+  def send_finished_signal(self, a_msg: str, has_failed: bool = False) -> bool:
+    try:
+      if has_failed:
+        tmp_status = "failed"
+      else:
+        tmp_status = "finished"
+      self._sender_socket.send_json(
+        json.dumps({
+          "msg": a_msg,
+          "finished_mols": (0, 1),
+          "status": tmp_status
+        })
+      )
+      return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
+
+  def send_progress(self, a_msg: str, a_progress: tuple) -> bool:
+    try:
+      self._sender_socket.send_json(
+        json.dumps({
+          "msg": a_msg,
+          "finished_mols": a_progress,
+          "status": "in-progress"
+        })
+      )
+      return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
