@@ -250,7 +250,7 @@ class CustomMessageBoxYesNo(CustomMessageBox):
     self.lbl_icon.setPixmap(QtGui.QIcon(an_icon_path).pixmap(40, 40))
     self.lbl_description.setText(a_message)
     self.btn_left.setText("Yes")
-    styles_utils.color_bottom_frame_button(self.btn_left)
+    #styles_utils.color_bottom_frame_button(self.btn_left)
     self.btn_right.setText("No")
     self.setWindowTitle(a_window_title)
 

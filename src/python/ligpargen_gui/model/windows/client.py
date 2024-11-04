@@ -6,7 +6,7 @@ import zmq
 from PyQt6 import QtCore
 
 from ligpargen_gui.model.preference import model_definitions
-from ligpargen_gui.model.util import filesystem_util
+from ligpargen_gui.model.util import filesystem_util, powershell
 
 
 class Client(QtCore.QObject):
@@ -30,21 +30,25 @@ class Client(QtCore.QObject):
 
   def copy_results(self, a_dest_folder: pathlib.Path):
     tmp_output_folder: str = filesystem_util.windows_to_wsl_path(str(a_dest_folder))
-    subprocess.run(
-      [
-        "wsl",
-        "-d",
-        model_definitions.ModelDefinitions.DISTRO_NAME,
-        "-u",
-        "alma_ligpargen",
-        "cp",
-        "-r",
-        "/home/alma_ligpargen/ligpargen_gui/scratch/results/*",
-        f"{tmp_output_folder}",
-      ],
-      check=True,
-      creationflags=subprocess.CREATE_NO_WINDOW
+    tmp_wsl_log_path: str = filesystem_util.windows_to_wsl_path(str(model_definitions.ModelDefinitions.DEFAULT_WSL2_LOG_PATH))
+    powershell.await_run_wsl_command(
+      ["cp", "-r", "/home/alma_ligpargen/ligpargen_gui/scratch/results/*", f"{tmp_output_folder}"]
     )
+    powershell.await_run_wsl_command(
+      ["cp", "-r", "/home/alma_ligpargen/ligpargen_gui/logs/*", tmp_wsl_log_path]
+    )
+    # subprocess.run(
+    #   [
+    #     "wsl",
+    #     "-d",
+    #     model_definitions.ModelDefinitions.DISTRO_NAME,
+    #     "-u",
+    #     "alma_ligpargen",
+    #
+    #   ],
+    #   check=True,
+    #   creationflags=subprocess.CREATE_NO_WINDOW
+    # )
 
   def check_progress_status(self):
     tmp_progress_info: dict = {"status": "started"}

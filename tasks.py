@@ -5,32 +5,11 @@ import tasks_util
 
 
 @task()
-def rootfs(c, version: str = "", check_version=False):
-  try:
-    tmp_cwd = tasks_util.Constants.podman_build_dir
-    if check_version:
-      tasks_util.InvokePowerShell.run_command("podman images", tmp_cwd)
-    tmp_commands = [
-      "podman machine start",
-      f"podman build -f .\DOCKERFILE -t alma9_ligpargen:version",
-      f"podman run --name almaLigParGen alma9_ligpargen:version",
-      "podman export -o alma9-ligpargen-rootfs.tar almaLigParGen"
-    ]
-    for tmp_cmd in tmp_commands:
-      tasks_util.InvokePowerShell.run_command(tmp_cmd, tmp_cwd)
-  except Exception as e:
-    print(e)
-  finally:
-    print("Rootfs build process finished.")
-
-
-@task()
-def build(c, rootfs=False, wsl_check=False):
+def build(c, rootfs=False, wsl_check=False, update=False):
   try:
     # Build & move rootfs to inno setup src dir
     if rootfs:
       tmp_cwd = tasks_util.Constants.podman_build_dir
-      #tasks_util.Directory().copy_directory(tasks_util.Constants.wsl2_source_path, tasks_util.Constants.wsl2_source_podman_path)
       tmp_commands = [
         "podman machine start",
         "podman build -f .\DOCKERFILE -t alma9_ligpargen:1.0.0.0",
@@ -78,13 +57,30 @@ def build(c, rootfs=False, wsl_check=False):
     # Build & move LigParGenGUI (with PyInstaller)
     tasks_util.Directory().purge(pathlib.Path(tasks_util.Constants.project_root_path, "deployment", "src", "bin"))
     c.run(f"pyinstaller {tasks_util.Constants.spec_file_for_pyinstaller_filepath} --distpath deployment/src -y")
-    # Build inno setup .exe
-    subprocess.run(
-      [
-        tasks_util.Constants.inno_setup_compiler_filepath,
-        str(tasks_util.Constants.inno_setup_script_filepath)
-      ]
-    )
+    tmp_wsl2_files = pathlib.Path(tasks_util.Constants.wsl2_source_build_path)
+    for file_path in tmp_wsl2_files.rglob('*'):  # rglob('*') matches all files recursively
+      if file_path.is_file():
+        tmp_completed_process = subprocess.run([str(tasks_util.Constants.dos_2_unix_filepath), str(file_path)])
+        if tmp_completed_process.returncode != 0:
+          print(tmp_completed_process.stderr)
+          print("Aborted build process due to an error converting dos line feeds to unix ones!")
+          return
+    if update:
+      # Build inno setup .exe
+      subprocess.run(
+        [
+          tasks_util.Constants.inno_setup_compiler_filepath,
+          str(tasks_util.Constants.inno_setup_update_script_filepath)
+        ]
+      )
+    else:
+      # Build inno setup .exe
+      subprocess.run(
+        [
+          tasks_util.Constants.inno_setup_compiler_filepath,
+          str(tasks_util.Constants.inno_setup_script_filepath)
+        ]
+      )
     tasks_util.Directory().purge(pathlib.Path(tasks_util.Constants.project_root_path, "deployment", "src", "bin"))
   except Exception as e:
     print(e)

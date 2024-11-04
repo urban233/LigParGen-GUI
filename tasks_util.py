@@ -14,8 +14,11 @@ class Constants:
   wsl2_source_path = pathlib.Path(project_root_path, "src", "python", "ligpargen_gui", "model", "wsl2")
   """The path of the wsl2 source directory."""
 
-  wsl2_source_podman_path = pathlib.Path(project_root_path, "deployment", "podman", "wsl2")
-  """The path of the wsl2 source directory."""
+  wsl2_source_build_path = pathlib.Path(project_root_path, "deployment", "src", "bin", "_internal", "src", "python", "ligpargen_gui", "model", "wsl2")
+  """The path of the wsl2 source directory in the build folder."""
+
+  dos_2_unix_filepath = pathlib.Path(project_root_path, "external", "dos2unix.exe")
+  """The filepath to the dos2unix exe file."""
 
   build_output_path: pathlib.Path = pathlib.Path(project_root_path, "_build", "output")
   """The path to the build output directory."""
@@ -92,6 +95,9 @@ class Constants:
   """The filepath of the compiler executable of inno setup."""
 
   inno_setup_script_filepath: pathlib.Path = pathlib.Path(project_root_path, "deployment", "setup.iss")
+  """The filepath of the inno setup script."""
+
+  inno_setup_update_script_filepath: pathlib.Path = pathlib.Path(project_root_path, "deployment", "update_setup.iss")
   """The filepath of the inno setup script."""
   # </editor-fold>
 

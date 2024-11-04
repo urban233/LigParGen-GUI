@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 WizardImageFile=compiler:WizClassicImage.bmp
 AppName=LigParGenGUI
-AppVersion=0.1.0
+AppVersion=0.1.2
 AppCopyright=Martin Urban, Hannah Kullik, IBCI
 AppId={{192F52C3-D86D-4735-9929-C7DF599CB354}
 DefaultDirName={commonappdata}\IBCI\LigParGenGUI
@@ -15,7 +15,7 @@ AppPublisher=IBCI
 VersionInfoProductName=LigParGenGUI
 MinVersion=10.0.19045
 OutputDir=out
-OutputBaseFilename=setup
+OutputBaseFilename=update
 VersionInfoCopyright=GNU GPL-3.0
 DisableDirPage=True
 DisableProgramGroupPage=True
@@ -25,7 +25,7 @@ DisableReadyPage=True
 DisableFinishedPage=True
 UninstallDisplayName=LigParGenGUI
 UninstallDisplayIcon={app}\assets\logo.ico
-LicenseFile=LICENSE.txt
+; LicenseFile=LICENSE.txt
 ; This is necessary because the setup will exceed 2 GB (due to almalinux rootfs)
 DiskSpanning=no
 DiskSliceSize=2100000000
@@ -42,7 +42,6 @@ Name: "{commonappdata}\IBCI\LigParGenGUI\bin"
 Name: "{commonappdata}\IBCI\LigParGenGUI\temp"
 
 [Files]
-Source: "src\offline_resources\alma9-ligpargen-rootfs.tar"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\temp"; Flags: ignoreversion recursesubdirs createallsubdirs;
 Source: "src\update.bat"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\bin"; Flags: ignoreversion recursesubdirs createallsubdirs;
 Source: "src\bin\*"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\bin"; Flags: ignoreversion recursesubdirs createallsubdirs;
 Source: "src\assets\logo.ico"; DestDir: "{commonappdata}\IBCI\LigParGenGUI\assets"; Flags: ignoreversion recursesubdirs createallsubdirs;
@@ -83,6 +82,26 @@ end;
 
 
 
+function RunBatchScript(): Boolean;
+var
+  ResultCode: Integer;
+begin
+  // Attempt to execute the PowerShell command
+  Result := Exec(
+    'C:\ProgramData\IBCI\LigParGen-GUI\bin\update.bat',
+    '',  // Params
+    '',  // Working directory (empty means current directory)
+    SW_SHOW,  // Window style, SW_HIDE hides the PowerShell window
+    ewWaitUntilTerminated,  // Wait for PowerShell to finish
+    ResultCode  // Store the result code here
+  );
+
+  // Set Result to False if the execution failed or returned a non-zero code
+  if not Result or (ResultCode <> 0) then
+    Result := False;
+end;
+
+
 procedure InitializeWizard;
 begin
   // Initialize the global variable
@@ -97,18 +116,23 @@ var
   PowerShellCommand: String;
 begin
   try
-    MsgBox('A post installation task needs to be run. This will take around 3 minutes to complete. Press OK to start.', mbInformation, MB_OK);
-    if not RunPowerShellCommand('wsl --import almaLigParGen9 "C:\ProgramData\IBCI\wsl\LigParGenGUI" "C:\ProgramData\IBCI\LigParGenGUI\temp\alma9-ligpargen-rootfs.tar"') then
+    MsgBox('A post installation task needs to be run. This will take around 2 minutes to complete. Press OK to start.', mbInformation, MB_OK);
+    if not RunBatchScript() then
     begin
       Result := False;
       Exit;  // Exit early if this command fails
     end;
+    //if not RunPowerShellCommand('$sourceDirectory = "C:\ProgramData\IBCI\LigParGen-GUI\bin\_internal\src\python\ligpargen_gui\model\wsl2"; $destinationDirectory = "\\wsl.localhost\almaLigParGen9\home\alma_ligpargen\ligpargen_gui\wsl2"; Remove-Item -Path $destinationDirectory -Recurse -Force; Copy-Item -Path $sourceDirectory -Destination $destinationDirectory -Recurse -Force') then
+    //begin
+      //Result := False;
+      //Exit;  // Exit early if this command fails
+    //end;
 
-    if not RunPowerShellCommand('Remove-Item -Path "C:\ProgramData\IBCI\LigParGenGUI\temp\alma9-ligpargen-rootfs.tar" -Force') then
-    begin
-      Result := False;
-      Exit;  // Exit early if this command fails
-    end;
+    //if not RunPowerShellCommand('wsl -d almaLigParGen9 -u alma_ligpargen sudo chmod +x /home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh') then
+    //begin
+      //Result := False;
+      //Exit;  // Exit early if this command fails
+    //end;
     // If all commands succeeded, return True
     Result := True;
   except
@@ -152,17 +176,9 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
-    // Call a custom function to perform post-installation tasks
-    if not DoPostInstallTasks then
-    begin
-      MsgBox('The installation failed due to a post-installation error.', mbError, MB_OK);
-    end
-    else
-    begin
-      MsgBox('The installation was successful. LigParGenGUI will now start automatically.', mbInformation, MB_OK);
+      //MsgBox('The installation was successful. LigParGenGUI will now start automatically.', mbInformation, MB_OK);
       Exec('C:\ProgramData\IBCI\LigParGenGUI\bin\LigParGenGUI.exe', '', '', SW_SHOW, ewNoWait, tmpResultCode)
     end;
-  end;
 end;
 
 

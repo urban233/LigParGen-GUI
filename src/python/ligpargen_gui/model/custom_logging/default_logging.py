@@ -40,6 +40,8 @@ def setup_logger(
     if not log_path.exists():
       log_path.mkdir(parents=True)
 
+  if not model_definitions.ModelDefinitions.DEFAULT_WSL2_LOG_PATH.exists():
+    model_definitions.ModelDefinitions.DEFAULT_WSL2_LOG_PATH.mkdir(parents=True)
   # </editor-fold>
 
   tmp_logger = logging.getLogger(a_name)

@@ -240,19 +240,6 @@ class MainFrameController:
       default_logging.append_to_log_file(logger, f"Unknown job status after job has finished: {self.client.job_status}", logging.WARNING)
 
   def start_server(self) -> None:
-    tmp_wsl2_src_folder: str = filesystem_util.windows_to_wsl_path(
-      str(pathlib.Path(
-          model_definitions.ModelDefinitions.PROGRAM_SRC_PATH,
-          "python", "ligpargen_gui", "model", "wsl2"
-        ))
-    )
-    if pathlib.Path(r"\\wsl.localhost\almaLigParGen9\home\alma_ligpargen\ligpargen_gui\wsl2").exists():
-      shutil.rmtree(r"\\wsl.localhost\almaLigParGen9\home\alma_ligpargen\ligpargen_gui\wsl2")
-    powershell.await_run_wsl_command(["sudo", "cp", "-r", tmp_wsl2_src_folder, "/home/alma_ligpargen/ligpargen_gui/wsl2"])
-    powershell.await_run_wsl_command(
-      ["sudo", "chmod", "+x", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"]
-    )
-    # TODO: Add a dos2unix conversion to ensure that all python files have the correct LF!
     subprocess.Popen(
       [
         "wsl",
@@ -409,13 +396,30 @@ class MainFrameController:
 
   def __await_run_ligpargen_job(self):
     self.shutdown_wsl2_distro()
-    self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))
-    tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
-      "LigParGen job failed!\nPlease consult the log file to get more information.",
-      "Job",
-      custom_message_box.CustomMessageBoxIcons.DANGEROUS.value,
-    )
-    tmp_job_failed_msg_box.exec()
+    if self.client.job_status == "failed":
+      self.job_progress_model.add_job_progress_message("LigParGen job failed!")
+      self.basic_controllers["JobProgress"].set_progress_bar_value(int(0))
+      tmp_msg_box = custom_message_box.CustomMessageBoxYesNo(
+        "LigParGen job failed!\nPlease consult the log file to get more information.\n Do you want to open the log folder now?",
+        "Job",
+        custom_message_box.CustomMessageBoxIcons.DANGEROUS.value,
+      )
+      tmp_msg_box.exec()
+      if tmp_msg_box.response:
+        subprocess.run(["explorer.exe", model_definitions.ModelDefinitions.DEFAULT_LOG_PATH])  # TODO: Sub with wsl2 log path under Windows!
+    elif self.client.job_status == "finished":
+      self.job_progress_model.add_job_progress_message("LigParGen job finished!")
+      self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))
+      tmp_msg_box = custom_message_box.CustomMessageBoxYesNo(
+        "The LigParGen job was successful.\nDo you want to open the output folder?",
+        "Job",
+        custom_message_box.CustomMessageBoxIcons.INFORMATION.value,
+      )
+      tmp_msg_box.exec()
+      if tmp_msg_box.response:
+        subprocess.run(["explorer.exe", str(pathlib.Path(self.main_frame.txt_output_directory.text()))])
+    else:
+      default_logging.append_to_log_file(logger, f"Unknown job status after job has finished: {self.client.job_status}", logging.WARNING)
     self.basic_controllers["JobProgress"].get_dialog().ui.btn_cancel.setEnabled(False)
     self.basic_controllers["JobProgress"].get_dialog().ui.btn_ok.setEnabled(True)
   # </editor-fold>

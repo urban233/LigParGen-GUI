@@ -32,8 +32,10 @@ class ModelDefinitions:
     f"{os.path.expanduser('~')}/.ligpargen_gui/{SETTINGS_FILENAME}"
   )
   """Default settings path"""
-  DEFAULT_LOG_PATH: pathlib.Path = pathlib.Path(f'{DEFAULT_SETTINGS_PATH}/logs')
+  DEFAULT_LOG_PATH: pathlib.Path = pathlib.Path(f'{DEFAULT_SETTINGS_PATH}/logs/windows')
   """Default logging path"""
+  DEFAULT_WSL2_LOG_PATH: pathlib.Path = pathlib.Path(f'{DEFAULT_SETTINGS_PATH}/logs/wsl2')
+  """Default WSL2 logging path"""
   LOG_FILENAME = f'{datetime.datetime.now().year}-{datetime.datetime.now().month:02d}-{datetime.datetime.now().day:02d}_{datetime.datetime.now().hour:02d}-{datetime.datetime.now().minute:02d}.log'  # noqa: E501
   """Log filename"""
   LOG_FILEPATH = pathlib.Path(f'{DEFAULT_SETTINGS_PATH}/logs/{LOG_FILENAME}')
