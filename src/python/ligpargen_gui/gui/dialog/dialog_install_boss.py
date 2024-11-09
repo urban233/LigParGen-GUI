@@ -5,6 +5,7 @@ from PyQt6 import QtWidgets
 from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from ligpargen_gui.gui.base_classes import base_dialog
+from ligpargen_gui.gui.custom_widgets import custom_label
 from ligpargen_gui.gui.dialog.forms.auto import auto_dialog_compare
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import styles_utils, icons
@@ -51,9 +52,11 @@ class DialogInstallBoss(base_dialog.BaseDialog):
     self.main_layout.addLayout(confirmation_layout)
     # </editor-fold>
 
+    self.lbl_error_message = custom_label.ErrorMessageLabel(self)
+
     self.setLayout(self.main_layout)
     self.setup_ui()
-    self.resize(400, 100)
+    self.resize(500, 100)
     self.setWindowModality(Qt.WindowModality.WindowModal)
 
   def setup_ui(self) -> None:

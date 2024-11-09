@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Callable
 from PyQt6 import QtWidgets
 from PyQt6 import QtCore
 from ligpargen_gui.gui.base_classes import base_controller
-from ligpargen_gui.gui.util import gui_util
+from ligpargen_gui.gui.util import gui_util, validator
 from ligpargen_gui.model.util import exception
 from ligpargen_gui.model.custom_logging import default_logging
 
@@ -46,6 +46,8 @@ class InstallBossController(base_controller.BaseController):
     self.boss_is_installed: bool = False
     """Flag to indicate whether the boss software is installed."""
     # </editor-fold>
+    self._dialog.txt_boss_tar_gz_path.setEnabled(False)
+    self._dialog.btn_ok.setEnabled(False)
     self.connect_all_signals()
 
   def connect_all_signals(self):
@@ -53,6 +55,7 @@ class InstallBossController(base_controller.BaseController):
     self._dialog.dialogClosed.connect(self.close_complete_app)
     self._dialog.btn_cancel.clicked.connect(self.close_complete_app)
     self._dialog.btn_ok.clicked.connect(self._dialog.close)
+    self._dialog.btn_boss_tar_gz_path.clicked.connect(self.__slot_choose_boss_tar_gz_path_from_filesystem)
 
   def get_dialog(self) -> QtWidgets.QDialog:
     """Gets the dialog of the controller."""
@@ -88,7 +91,27 @@ class InstallBossController(base_controller.BaseController):
   def enable_all_input_widgets(self):
     """Enables all input widgets."""
     self._dialog.txt_boss_tar_gz_path.clear()
-    self._dialog.txt_boss_tar_gz_path.setEnabled(True)
+    self._dialog.txt_boss_tar_gz_path.setEnabled(False)
     self._dialog.btn_boss_tar_gz_path.setEnabled(True)
     self._dialog.btn_ok.setEnabled(False)
     self._dialog.btn_cancel.setEnabled(True)
+
+  def __slot_choose_boss_tar_gz_path_from_filesystem(self) -> None:
+    """Chooses the boss.tar.gz file from the filesystem."""
+    default_logging.append_to_log_file(
+      logger, "'Choose boss.tar.gz file from the filesystem' button was clicked."
+    )
+    _, tmp_path = gui_util.open_choose_file_q_dialog(
+      self._dialog,
+      self._dialog.txt_boss_tar_gz_path,
+      "Choose boss.tar.gz file",
+      "*.tar.gz"
+    )
+    if tmp_path == "":
+      if self._dialog.txt_boss_tar_gz_path.text() == "":
+        self._dialog.btn_ok.setEnabled(False)
+      else:
+        self._dialog.btn_ok.setEnabled(True)
+    else:
+      self._dialog.btn_ok.setEnabled(True)
+      self._dialog.txt_boss_tar_gz_path.setText(tmp_path)

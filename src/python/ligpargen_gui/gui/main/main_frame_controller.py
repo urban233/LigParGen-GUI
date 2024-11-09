@@ -172,7 +172,7 @@ class MainFrameController:
     tmp_boss_is_installed = filesystem_util.check_file_exists_in_wsl(
       model_definitions.ModelDefinitions.DISTRO_NAME, "/home/alma_ligpargen/boss/BOSS"
     )
-    if not tmp_boss_is_installed:
+    if tmp_boss_is_installed:
       self.basic_controllers["InstallBoss"].set_slot_method_for_ok_button(self.open_progress_dialog_for_boss_install)
       self.basic_controllers["InstallBoss"].get_dialog().show()
 
