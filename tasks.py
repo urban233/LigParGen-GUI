@@ -55,6 +55,12 @@ def build(c, rootfs=False, wsl_check=False, update=False):
       tasks_util.File().copy(tasks_util.Constants.wsl_check_exe_build_filepath,
                              tasks_util.Constants.wsl_check_exe_filepath, overwrite=True)
     # Build & move LigParGenGUI (with PyInstaller)
+    # Run the functions
+    new_version = tasks_util.parse_and_modify_python_file()
+    tasks_util.update_version_history(new_version)
+    tasks_util.update_toml_version(new_version)
+    tasks_util.update_inno_setup_version(tasks_util.Constants.inno_setup_script_filepath, new_version)
+    tasks_util.update_inno_setup_version(tasks_util.Constants.inno_setup_update_script_filepath, new_version)
     tasks_util.Directory().purge(pathlib.Path(tasks_util.Constants.project_root_path, "deployment", "src", "bin"))
     c.run(f"pyinstaller {tasks_util.Constants.spec_file_for_pyinstaller_filepath} --distpath deployment/src -y")
     tmp_wsl2_files = pathlib.Path(tasks_util.Constants.wsl2_source_build_path)
@@ -79,6 +85,12 @@ def build(c, rootfs=False, wsl_check=False, update=False):
         [
           tasks_util.Constants.inno_setup_compiler_filepath,
           str(tasks_util.Constants.inno_setup_script_filepath)
+        ]
+      )
+      subprocess.run(
+        [
+          tasks_util.Constants.inno_setup_compiler_filepath,
+          str(tasks_util.Constants.inno_setup_update_script_filepath)
         ]
       )
     tasks_util.Directory().purge(pathlib.Path(tasks_util.Constants.project_root_path, "deployment", "src", "bin"))

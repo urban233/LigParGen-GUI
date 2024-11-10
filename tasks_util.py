@@ -2,7 +2,10 @@ import os
 import pathlib
 import shutil
 import subprocess
+import re
+import json
 from urllib import request
+from datetime import datetime
 
 
 class Constants:
@@ -10,6 +13,15 @@ class Constants:
   # <editor-fold desc="Class attributes">
   project_root_path = pathlib.Path(__file__).parent.absolute()
   """The root path of the project."""
+
+  model_definitions_source_path = pathlib.Path(project_root_path, "src", "python", "ligpargen_gui", "model", "preference", "model_definitions.py")
+  """The filepath of the model definitions source file."""
+
+  version_history_filepath = pathlib.Path(project_root_path, "version_history.json")
+  """The filepath to the version history json."""
+
+  pyproject_toml_filepath = pathlib.Path(project_root_path, "pyproject.toml")
+  """The filepath to the pyproject toml file."""
 
   wsl2_source_path = pathlib.Path(project_root_path, "src", "python", "ligpargen_gui", "model", "wsl2")
   """The path of the wsl2 source directory."""
@@ -42,27 +54,27 @@ class Constants:
   alma_linux_rootfs_url: str = "https://w-hs.sciebo.de/s/q5oYjcZdEzCDyEH/download"
   """The url for downloading the AlmaLinux rootfs."""
 
-  post_installation_runner_project_path = pathlib.Path(
-    project_root_path, "src", "c_sharp", "PostInstallationRunner"
-  )
-  """The path to the PostInstallationRunner C# project."""
-
-  post_installation_runner_publish_xml_filepath = pathlib.Path(
-    project_root_path, "src", "c_sharp", "PostInstallationRunner",
-    "Properties", "PublishProfiles", "FolderProfile.pubxml"
-  )
-  """The filepath to the PostInstallationRunner publishing profile."""
-
-  post_installation_runner_exe_build_filepath = pathlib.Path(
-    project_root_path, "src", "c_sharp", "PostInstallationRunner",
-    "bin", "Release", "net8.0", "publish", "win-x64", "PostInstallationRunner.exe"
-  )
-  """The filepath to the PostInstallationRunner published .exe file."""
-
-  post_installation_runner_exe_filepath = pathlib.Path(
-    project_root_path, "deployment", "src", "PostInstallationRunner.exe"
-  )
-  """The filepath to the PostInstallationRunner .exe file that is used in the inno setup script."""
+  # post_installation_runner_project_path = pathlib.Path(
+  #   project_root_path, "src", "c_sharp", "PostInstallationRunner"
+  # )
+  # """The path to the PostInstallationRunner C# project."""
+  #
+  # post_installation_runner_publish_xml_filepath = pathlib.Path(
+  #   project_root_path, "src", "c_sharp", "PostInstallationRunner",
+  #   "Properties", "PublishProfiles", "FolderProfile.pubxml"
+  # )
+  # """The filepath to the PostInstallationRunner publishing profile."""
+  #
+  # post_installation_runner_exe_build_filepath = pathlib.Path(
+  #   project_root_path, "src", "c_sharp", "PostInstallationRunner",
+  #   "bin", "Release", "net8.0", "publish", "win-x64", "PostInstallationRunner.exe"
+  # )
+  # """The filepath to the PostInstallationRunner published .exe file."""
+  #
+  # post_installation_runner_exe_filepath = pathlib.Path(
+  #   project_root_path, "deployment", "src", "PostInstallationRunner.exe"
+  # )
+  # """The filepath to the PostInstallationRunner .exe file that is used in the inno setup script."""
 
   wsl_check_project_path = pathlib.Path(
     project_root_path, "src", "c_sharp", "PostInstallationRunner"
@@ -293,3 +305,117 @@ class InvokePowerShell:
   def run_command(a_cmd, a_cwd):
     """Runs a single command in the powershell."""
     subprocess.run(["powershell", "-Command", a_cmd], shell=True, cwd=a_cwd)
+
+# File paths
+python_file_path = 'path_to_your_python_file.py'
+json_file_path = 'path_to_your_json_file.json'
+toml_file_path = 'path_to_your_pyproject.toml'
+
+
+def increment_version(version):
+  """Increment the last digit of the version string."""
+  version_parts = version.strip('"').split('.')
+  version_parts[-1] = str(int(version_parts[-1]) + 1)
+  return f'"{".".join(version_parts)}"'
+
+
+def parse_and_modify_python_file():
+  """Modify the Python file with incremented version, uncommenting, and commenting paths."""
+  with open(Constants.model_definitions_source_path, 'r') as file:
+    lines = file.readlines()
+
+  new_lines = []
+  in_deployment_paths = False
+  in_development_paths = False
+  new_version = None
+
+  for line in lines:
+    # Increment the VERSION_NUMBER
+    if line.strip().startswith("VERSION_NUMBER"):
+      version = re.search(r'\"([^\"]+)\"', line).group(0)
+      new_version = increment_version(version)
+      line = re.sub(r'\"([^\"]+)\"', new_version, line)
+
+    # # Uncomment the PROGRAM paths in the Deployment paths section
+    # if "<editor-fold desc=\"Deployment paths\">" in line:
+    #   in_deployment_paths = True
+    # elif "</editor-fold>" in line and in_deployment_paths:
+    #   in_deployment_paths = False
+    #
+    # if in_deployment_paths:
+    #   if line.strip().startswith("#PROGRAM_ROOT_PATH") or line.strip().startswith("#PROGRAM_SRC_PATH"):
+    #     line = line.lstrip('#').lstrip()
+    #
+    # # Comment out paths in the For development purposes section
+    # if "<editor-fold desc=\"For development purposes\">" in line:
+    #   in_development_paths = True
+    # elif "</editor-fold>" in line and in_development_paths:
+    #   in_development_paths = False
+    #
+    # if in_development_paths:
+    #   if line.strip().startswith("PROGRAM_ROOT_PATH") or line.strip().startswith("PROGRAM_SRC_PATH"):
+    #     line = f"#{line}"
+
+    new_lines.append(line)
+
+  # Write modified content back to the Python file
+  with open(Constants.model_definitions_source_path, 'w') as file:
+    file.writelines(new_lines)
+
+  new_version = new_version.strip('"')
+  return new_version.replace("v", "")
+
+
+def update_version_history(new_version):
+  """Append a new version entry to the JSON version history file."""
+  today_date = datetime.now().strftime('%Y-%m-%d')
+  new_entry = {"version": new_version, "releaseDate": today_date}
+
+  # Load existing data from the JSON file
+  try:
+    with open(Constants.version_history_filepath, 'r') as json_file:
+      data = json.load(json_file)
+  except FileNotFoundError:
+    # Initialize with a structure if file does not exist
+    data = {"versionHistory": []}
+
+  # Append the new version entry
+  data["versionHistory"].append(new_entry)
+
+  # Write the updated data back to the JSON file
+  with open(Constants.version_history_filepath, 'w') as json_file:
+    json.dump(data, json_file, indent=2)
+
+
+def update_toml_version(new_version):
+  """Update the version in the pyproject.toml file."""
+  with open(Constants.pyproject_toml_filepath, 'r') as file:
+    toml_content = file.read()
+
+  # Replace the version line with the new version
+  new_toml_content = re.sub(
+    r'version = "[^"]+"',
+    f'version = "{new_version}"',
+    toml_content
+  )
+
+  # Write the updated content back to the TOML file
+  with open(Constants.pyproject_toml_filepath, 'w') as file:
+    file.write(new_toml_content)
+
+
+def update_inno_setup_version(inno_setup_file_path, new_version):
+  """Update the AppVersion in the Inno Setup script."""
+  with open(inno_setup_file_path, 'r') as file:
+    inno_content = file.read()
+
+  # Replace the AppVersion line with the new version
+  new_inno_content = re.sub(
+    r'AppVersion=[^\n]+',
+    f'AppVersion={new_version}',
+    inno_content
+  )
+
+  # Write the updated content back to the Inno Setup file
+  with open(inno_setup_file_path, 'w') as file:
+    file.write(new_inno_content)

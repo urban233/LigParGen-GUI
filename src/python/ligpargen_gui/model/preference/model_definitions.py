@@ -49,7 +49,7 @@ class ModelDefinitions:
   STATUS_MESSAGE_TIMEOUT = 5000  # value in msec
   """The standard status bar message timeout"""
 
-  VERSION_NUMBER = "v0.1.2"  # The version number MUST be in double quotes
+  VERSION_NUMBER = "0.1.5"  # The version number MUST be in double quotes
 
   URL_TO_REMOTE_VERSION = "https://w-hs.sciebo.de/s/vTFDNkX8aA6p1cJ/download"
   REMOTE_VERSION_FILEPATH = pathlib.Path(f"{DEFAULT_SETTINGS_PATH}/remote_version.json")
