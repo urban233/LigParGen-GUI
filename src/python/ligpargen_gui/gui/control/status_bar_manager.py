@@ -7,6 +7,7 @@ from PyQt6 import QtWidgets
 
 from ligpargen_gui.gui.custom_widgets import custom_label
 from ligpargen_gui.gui.preference import gui_definitions
+from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util import exception
 from ligpargen_gui.model.custom_logging import default_logging
 
@@ -40,6 +41,22 @@ class StatusBarManager:
     self._progress_bar = QtWidgets.QProgressBar()
     self._permanent_message = custom_label.PermanentMessageLabel()
 
+    # Create a button and make it look like a hyperlink
+    self.lbl_current_version = QtWidgets.QLabel(f"Version {model_definitions.ModelDefinitions.VERSION_NUMBER.replace('v', '')}")
+    self.btn_new_version = QtWidgets.QPushButton("Update")
+    self.btn_new_version.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+    self.btn_new_version.setStyleSheet("""
+        QPushButton {
+            background-color: transparent;
+            color: #0078d7;
+            text-decoration: underline;
+            border: none;
+        }
+        QPushButton:hover {
+            color: #0056a3;
+        }
+    """)
+
     self._menu_task = QtWidgets.QMenu()
     self._is_menu_open = False
     self._abort_action = QtGui.QAction("Abort Job")
@@ -47,6 +64,8 @@ class StatusBarManager:
 
     self._view.statusBar().addPermanentWidget(self._progress_bar)
     self._view.statusBar().addPermanentWidget(self._permanent_message)
+    self._view.statusBar().addPermanentWidget(self.lbl_current_version)
+    self._view.statusBar().addPermanentWidget(self.btn_new_version)
     self._progress_bar.hide()
     self.temp_message_timer = QtCore.QTimer()
 

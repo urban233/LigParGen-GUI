@@ -30,12 +30,17 @@ class MainFrame(QtWidgets.QMainWindow):
 
     # <editor-fold desc="Menu bar">
     menu_bar = self.menuBar()
-    self.file_menu = menu_bar.addMenu('File')
-    self.compare_action = QtGui.QAction('Compare', self)
+    self.file_menu = menu_bar.addMenu('Application')
+    self.help_menu = menu_bar.addMenu('Help')
+    #self.compare_action = QtGui.QAction('Compare', self)
     self.exit_action = QtGui.QAction('Exit', self)
-    self.file_menu.addAction(self.compare_action)
+    self.docs_action = QtGui.QAction('Documentation', self)
+    self.about_action = QtGui.QAction('About', self)
+    #self.file_menu.addAction(self.compare_action)
     self.file_menu.addSeparator()
     self.file_menu.addAction(self.exit_action)
+    self.help_menu.addAction(self.docs_action)
+    self.help_menu.addAction(self.about_action)
     # </editor-fold>
 
     shadow_effect = QtWidgets.QGraphicsDropShadowEffect()

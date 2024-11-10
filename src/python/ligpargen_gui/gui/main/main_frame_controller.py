@@ -1,3 +1,4 @@
+import json
 import logging
 import pathlib
 import shutil
@@ -8,7 +9,8 @@ from tea.concurrent import task_result, action, task_manager, task_scheduler, ta
 from ligpargen_gui.gui.control import compare_controller, status_bar_manager, job_progress_controller, \
   install_boss_controller
 from ligpargen_gui.gui.custom_widgets import custom_label
-from ligpargen_gui.gui.dialog import dialog_compare, dialog_job_progress, custom_message_box, dialog_install_boss
+from ligpargen_gui.gui.dialog import dialog_compare, dialog_job_progress, custom_message_box, dialog_install_boss, \
+  dialog_about
 from ligpargen_gui.gui.main import main_frame
 from ligpargen_gui.gui.util import gui_util, validator
 from ligpargen_gui.model.custom_logging import default_logging
@@ -16,7 +18,7 @@ from ligpargen_gui.model.data_classes import ligpargen_options
 from ligpargen_gui.model.jobs import ligpargen_job_input, install_boss_job_input
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.qmodel import job_progress_model
-from ligpargen_gui.model.util import exception, compare, post_processing, filesystem_util, powershell
+from ligpargen_gui.model.util import exception, compare, post_processing, filesystem_util, powershell, url
 from ligpargen_gui.model.windows import client
 
 logger = default_logging.setup_logger(__file__)
@@ -56,7 +58,11 @@ class MainFrameController:
     self.job_progress_model = job_progress_model.JobProgressModel()
     self.connect_all_signals()
     self.update_main_frame_gui()
-    self.check_if_boss_is_installed()
+    if self.check_if_boss_is_installed():
+      if self.check_if_update_is_available():
+        self.status_bar_manager.btn_new_version.show()
+      else:
+        self.status_bar_manager.btn_new_version.hide()
 
   def schedule_tool_task_result_object(
           self,
@@ -82,7 +88,8 @@ class MainFrameController:
   def connect_all_signals(self) -> None:
     """Connects all signals with their slot functions."""
     self.basic_controllers["Compare"].component_task.connect(self.schedule_tool_task_result_object)
-    self.main_frame.compare_action.triggered.connect(self.compare_file)
+    #self.main_frame.compare_action.triggered.connect(self.compare_file)
+    self.main_frame.about_action.triggered.connect(self.__slot_open_about)
     self.main_frame.exit_action.triggered.connect(self.main_frame.close)
     self.main_frame.txt_structure_input.textChanged.connect(self.__slot_check_structure_path_input)
     self.main_frame.btn_structure_input.clicked.connect(self.__slot_choose_structure_input_path_from_filesystem)
@@ -109,6 +116,7 @@ class MainFrameController:
     # </editor-fold>
     self.main_frame.btn_start_job.clicked.connect(self.start_ligpargen_job)
     self.client.progress_signal.connect(self.update_progress_dialog)
+    self.status_bar_manager.btn_new_version.clicked.connect(self.update_application)
 
   def update_main_frame_gui(self) -> None:
     """Updates the entire gui of the main frame."""
@@ -167,14 +175,41 @@ class MainFrameController:
     print(tmp_progress)
     self.basic_controllers["JobProgress"].set_progress_bar_value(int(tmp_progress))
 
-  def check_if_boss_is_installed(self) -> None:
+  def check_if_update_is_available(self) -> bool:
+    """Checks if an update is available."""
+    if model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH.exists():
+      model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH.unlink()
+    if not url.download_file(model_definitions.ModelDefinitions.URL_TO_REMOTE_VERSION, model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH):
+      self.status_bar_manager.show_error_message("Could not check for updates!")
+    try:
+      # Open and load the JSON file
+      with open(model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH, 'r') as file:
+        data = json.load(file)
+      # Extract the latest version from the versionHistory list
+      latest_version = data["versionHistory"][0]["version"]
+      current_version = model_definitions.ModelDefinitions.VERSION_NUMBER.replace("v", "")
+      # Check if the latest version matches the target version
+      if latest_version == current_version:
+        default_logging.append_to_log_file(logger, f"The version {latest_version} matches the target version.", logging.INFO)
+        return False
+      else:
+        default_logging.append_to_log_file(logger, f"The version {latest_version} does NOT match the target version {current_version}.", logging.INFO)
+        return True
+    except (json.JSONDecodeError, KeyError, IndexError) as e:
+      default_logging.append_to_log_file(logger, f"Error parsing the file or accessing version: {e}", logging.ERROR)
+      return True
+
+  def check_if_boss_is_installed(self) -> bool:
     """Checks if the BOSS software is installed in the WSL2 and prompts the user if not."""
     tmp_boss_is_installed = filesystem_util.check_file_exists_in_wsl(
       model_definitions.ModelDefinitions.DISTRO_NAME, "/home/alma_ligpargen/boss/BOSS"
     )
-    if tmp_boss_is_installed:
+    if not tmp_boss_is_installed:
       self.basic_controllers["InstallBoss"].set_slot_method_for_ok_button(self.open_progress_dialog_for_boss_install)
       self.basic_controllers["InstallBoss"].get_dialog().show()
+      return False
+    else:
+      return True
 
   def open_progress_dialog_for_boss_install(self) -> None:
     """Opens the job progress dialog for the boss installation."""
@@ -268,6 +303,17 @@ class MainFrameController:
       ],
       creationflags=subprocess.CREATE_NO_WINDOW
     )
+
+  def __slot_open_about(self) -> None:
+    """Opens the About dialog."""
+    try:
+      tmp_dialog = dialog_about.DialogAbout()
+      tmp_dialog.exec()
+    except Exception as e:
+      logger.error(f"An error occurred: {e}")
+      self.status_bar_manager.show_error_message(
+        "An unknown error occurred!"
+      )
 
   # <editor-fold desc="Structure input">
   def __slot_choose_structure_input_path_from_filesystem(self) -> None:
@@ -493,3 +539,55 @@ class MainFrameController:
       self.browser.setUrl(QtCore.QUrl.fromLocalFile(r"C:\Users\student\github_repos\LigParGen-GUI\test_files\AcCO_key_report.html"))
       self.browser.show()
   # </editor-fold>
+
+  def update_application(self) -> None:
+    """Starts the update routine for the application."""
+    tmp_msg_box = custom_message_box.CustomMessageBoxYesNo(
+      "There is a new update avaliable. Do you want to update now?",
+      "Update",
+      custom_message_box.CustomMessageBoxIcons.INFORMATION.value,
+    )
+    tmp_msg_box.exec()
+    if tmp_msg_box.response:
+      self.status_bar_manager.show_temporary_message("Downloading update.exe ...", False)
+      self.task_manager.append_task_result(
+        task_result_factory.TaskResultFactory.run_task_result(
+          a_task_result=task_result.TaskResult.from_action(
+            an_action=action.Action(
+              a_target=self.async_update_application,
+              args=(0,),
+            ),
+            an_await_function=self.__await_update_application
+          ),
+          a_task_scheduler=self.task_scheduler
+        )
+      )
+
+  def async_update_application(self, a_placeholder):
+    """Starts the update asynchronously."""
+    # Get the path to the current user's Downloads folder
+    tmp_update_exe_filepath = pathlib.Path.home() / "Downloads" / "update.exe"
+    if not url.download_file(model_definitions.ModelDefinitions.URL_TO_UPDATE_SETUP, tmp_update_exe_filepath):
+      return False
+    else:
+      return True
+
+  def __await_update_application(self, result: bool):
+    """Awaits the download of the update setup."""
+    if result:
+      tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
+        "The application will now close and run the update automatically.",
+        "Update",
+        custom_message_box.CustomMessageBoxIcons.INFORMATION.value,
+      )
+      tmp_job_failed_msg_box.exec()
+      tmp_update_exe_filepath = pathlib.Path.home() / "Downloads" / "update.exe"
+      subprocess.Popen([tmp_update_exe_filepath, "/SILENT"])
+      exit(0)
+    else:
+      tmp_job_failed_msg_box = custom_message_box.CustomMessageBoxOk(
+        "Downloading the update failed!",
+        "Update failed",
+        custom_message_box.CustomMessageBoxIcons.ERROR.value,
+      )
+      tmp_job_failed_msg_box.exec()
