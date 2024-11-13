@@ -54,14 +54,15 @@ class JobProgressController(base_controller.BaseController):
     self.file_extension: str = ""
     """The file extension that should be compared."""
     # </editor-fold>
+    self.restore_ui()
     self.job_progress_model = None
     self.connect_all_signals()
 
   def connect_all_signals(self):
     """Connects all signals with their appropriate slot methods."""
     self._dialog.dialogClosed.connect(self.set_dialog_close_as_canceled)
-    self._dialog.ui.btn_cancel.clicked.connect(self._dialog.close)
-    self._dialog.ui.btn_ok.clicked.connect(self._dialog.close)
+    self._dialog.ui.btn_cancel.clicked.connect(self.close_dialog)
+    self._dialog.ui.btn_ok.clicked.connect(self.close_dialog)
 
   def get_dialog(self) -> QtWidgets.QDialog:
     """Gets the dialog of the controller."""
@@ -74,6 +75,7 @@ class JobProgressController(base_controller.BaseController):
   def set_dialog_close_as_canceled(self) -> None:
     """Sets the was_canceled flag to true."""
     self.was_canceled = True
+    self.restore_ui()
 
   def set_job_progress_model(self, a_job_progress_model):
     """Sets the job progress model to update the list view with new messages."""
@@ -82,3 +84,8 @@ class JobProgressController(base_controller.BaseController):
 
   def set_progress_bar_value(self, a_progress_bar_value: int) -> None:
     self._dialog.ui.prog_bar.setValue(a_progress_bar_value)
+
+  def close_dialog(self):
+    """Closes the dialog and restores the ui."""
+    self._dialog.close()
+    self.restore_ui()

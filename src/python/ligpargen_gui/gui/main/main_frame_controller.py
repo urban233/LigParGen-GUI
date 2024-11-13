@@ -89,6 +89,8 @@ class MainFrameController:
     """Connects all signals with their slot functions."""
     self.basic_controllers["Compare"].component_task.connect(self.schedule_tool_task_result_object)
     #self.main_frame.compare_action.triggered.connect(self.compare_file)
+    self.main_frame.open_logs_folder_action.triggered.connect(self.__slot_open_logs)
+    self.main_frame.clear_all_logs_action.triggered.connect(self.__slot_clear_all_log_files)
     self.main_frame.about_action.triggered.connect(self.__slot_open_about)
     self.main_frame.exit_action.triggered.connect(self.main_frame.close)
     self.main_frame.txt_structure_input.textChanged.connect(self.__slot_check_structure_path_input)
@@ -304,6 +306,7 @@ class MainFrameController:
       creationflags=subprocess.CREATE_NO_WINDOW
     )
 
+  # <editor-fold desc="Help menu methods">
   def __slot_open_about(self) -> None:
     """Opens the About dialog."""
     try:
@@ -314,6 +317,55 @@ class MainFrameController:
       self.status_bar_manager.show_error_message(
         "An unknown error occurred!"
       )
+
+  def __slot_open_logs(self) -> None:
+    """Opens a file explorer with all log files and can open a log file in the default application."""
+    try:
+      subprocess.run(["explorer.exe", str(model_definitions.ModelDefinitions.DEFAULT_LOG_PATH)])
+      # file_dialog = QtWidgets.QFileDialog()
+      # log_path = str(constants.LOG_PATH)
+      # file_dialog.setDirectory(log_path)
+      # file_path, _ = file_dialog.getOpenFileName(
+      #   self._view, "Select a log file to open", "", "LOG File (*.log)"
+      # )
+      # if file_path:
+      #   os.startfile(file_path)
+    except Exception as e:
+      logger.error(f"An error occurred: {e}")
+      self._interface_manager.status_bar_manager.show_error_message(
+        "An unknown error occurred!"
+      )
+
+  def __slot_clear_all_log_files(self) -> None:
+    """Clears all log files generated under .pyssa/logs."""
+    try:
+      tmp_dialog = custom_message_box.CustomMessageBoxYesNo(
+        "Are you sure you want to delete all log files?",
+        "Clear Log Files",
+        custom_message_box.CustomMessageBoxIcons.WARNING.value,
+      )
+      tmp_dialog.exec()
+      if tmp_dialog.response:
+        try:
+          shutil.rmtree(str(model_definitions.ModelDefinitions.DEFAULT_WINDOWS_LOG_PATH))
+        except PermissionError:
+          default_logging.append_to_log_file(logger, "The active windows log file was not deleted.", logging.INFO)
+        if not model_definitions.ModelDefinitions.DEFAULT_WINDOWS_LOG_PATH.exists():
+          model_definitions.ModelDefinitions.DEFAULT_WINDOWS_LOG_PATH.mkdir(parents=True)
+        try:
+          shutil.rmtree(str(model_definitions.ModelDefinitions.DEFAULT_WSL2_LOG_PATH))
+        except PermissionError:
+          default_logging.append_to_log_file(logger, "The active wsl2 log file was not deleted.", logging.INFO)
+        if not model_definitions.ModelDefinitions.DEFAULT_WSL2_LOG_PATH.exists():
+          model_definitions.ModelDefinitions.DEFAULT_WSL2_LOG_PATH.mkdir(parents=True)
+        powershell.await_run_wsl_command(
+          ["sudo", "rm", "-r", "/home/alma_ligpargen/ligpargen_gui/logs/*"]
+        )
+        self.status_bar_manager.show_temporary_message("All log files were deleted.")
+    except Exception as e:
+      logger.error(f"An error occurred: {e}")
+      self.status_bar_manager.show_error_message("An unknown error occurred!")
+  # </editor-fold>
 
   # <editor-fold desc="Structure input">
   def __slot_choose_structure_input_path_from_filesystem(self) -> None:
@@ -452,7 +504,7 @@ class MainFrameController:
       )
       tmp_msg_box.exec()
       if tmp_msg_box.response:
-        subprocess.run(["explorer.exe", model_definitions.ModelDefinitions.DEFAULT_LOG_PATH])  # TODO: Sub with wsl2 log path under Windows!
+        subprocess.run(["explorer.exe", model_definitions.ModelDefinitions.DEFAULT_WINDOWS_LOG_PATH])  # TODO: Sub with wsl2 log path under Windows!
     elif self.client.job_status == "finished":
       self.job_progress_model.add_job_progress_message("LigParGen job finished!")
       self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))

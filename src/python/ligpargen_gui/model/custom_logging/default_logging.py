@@ -9,7 +9,7 @@ __docformat__ = "google"
 def setup_logger(
         a_name: str,
         level: int = logging.DEBUG,
-        log_path: pathlib.Path = model_definitions.ModelDefinitions.DEFAULT_LOG_PATH,
+        log_path: pathlib.Path = model_definitions.ModelDefinitions.DEFAULT_WINDOWS_LOG_PATH,
         add_console_handler: bool = True
 ) -> Optional[logging.Logger]:
   """Sets up a logger with a FileHandler directing output to the specified file.
@@ -33,9 +33,9 @@ def setup_logger(
   # </editor-fold>
 
   # <editor-fold desc="Definitions of important paths">
-  if log_path == model_definitions.ModelDefinitions.DEFAULT_LOG_PATH:
-    if not model_definitions.ModelDefinitions.DEFAULT_LOG_PATH.exists():
-      model_definitions.ModelDefinitions.DEFAULT_LOG_PATH.mkdir(parents=True)
+  if log_path == model_definitions.ModelDefinitions.DEFAULT_WINDOWS_LOG_PATH:
+    if not model_definitions.ModelDefinitions.DEFAULT_WINDOWS_LOG_PATH.exists():
+      model_definitions.ModelDefinitions.DEFAULT_WINDOWS_LOG_PATH.mkdir(parents=True)
   else:
     if not log_path.exists():
       log_path.mkdir(parents=True)

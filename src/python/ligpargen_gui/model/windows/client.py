@@ -37,18 +37,6 @@ class Client(QtCore.QObject):
     powershell.await_run_wsl_command(
       ["cp", "-r", "/home/alma_ligpargen/ligpargen_gui/logs/*", tmp_wsl_log_path]
     )
-    # subprocess.run(
-    #   [
-    #     "wsl",
-    #     "-d",
-    #     model_definitions.ModelDefinitions.DISTRO_NAME,
-    #     "-u",
-    #     "alma_ligpargen",
-    #
-    #   ],
-    #   check=True,
-    #   creationflags=subprocess.CREATE_NO_WINDOW
-    # )
 
   def check_progress_status(self):
     tmp_progress_info: dict = {"status": "started"}

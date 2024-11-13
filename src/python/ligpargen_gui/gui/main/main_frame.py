@@ -35,11 +35,16 @@ class MainFrame(QtWidgets.QMainWindow):
     #self.compare_action = QtGui.QAction('Compare', self)
     self.exit_action = QtGui.QAction('Exit', self)
     self.docs_action = QtGui.QAction('Documentation', self)
+    self.open_logs_folder_action = QtGui.QAction('Open logs folder', self)
+    self.clear_all_logs_action = QtGui.QAction('Clear all logs', self)
     self.about_action = QtGui.QAction('About', self)
     #self.file_menu.addAction(self.compare_action)
     self.file_menu.addSeparator()
     self.file_menu.addAction(self.exit_action)
     self.help_menu.addAction(self.docs_action)
+    self.help_menu.addAction(self.open_logs_folder_action)
+    self.help_menu.addAction(self.clear_all_logs_action)
+    self.help_menu.addSeparator()
     self.help_menu.addAction(self.about_action)
     # </editor-fold>
 
