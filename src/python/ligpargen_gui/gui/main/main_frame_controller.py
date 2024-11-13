@@ -281,7 +281,7 @@ class MainFrameController:
         "-d", model_definitions.ModelDefinitions.DISTRO_NAME,
         "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"
       ],
-      creationflags=subprocess.CREATE_NO_WINDOW
+      # creationflags=subprocess.CREATE_NO_WINDOW
     )
 
   def shutdown_wsl2_distro(self) -> None:

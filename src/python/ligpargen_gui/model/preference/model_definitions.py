@@ -12,7 +12,7 @@ class ModelDefinitions:
   # <editor-fold desc="For development purposes">
   PROGRAM_ROOT_PATH = pathlib.Path(__file__).parent.parent.parent.parent.parent.parent
   """Path to the root of the program."""
-  PROGRAM_SRC_PATH = r"C:\Users\student\github_repos\LigParGen-GUI\src"
+  PROGRAM_SRC_PATH = r"C:\Users\hannah\github_repos\LigParGen-GUI\src"
   # </editor-fold>
 
   # <editor-fold desc="Deployment paths">
