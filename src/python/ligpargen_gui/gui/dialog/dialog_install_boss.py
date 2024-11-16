@@ -31,7 +31,62 @@ class DialogInstallBoss(base_dialog.BaseDialog):
     self.main_layout = QtWidgets.QVBoxLayout()
 
     # <editor-fold desc="Description label">
+    self.txt_browser_description = QtWidgets.QTextBrowser()
+    tmp_html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LigParGen Requirements</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+            }
+            h2 {
+                color: #5e4dcd;
+            }
+            p {
+                margin-bottom: 15px;
+            }
+            .email {
+                color: #0077cc;
+                text-decoration: none;
+            }
+            .email:hover {
+                text-decoration: underline;
+            }
+            .highlight {
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>LigParGen Software Requirements</h2>
+        <p>
+          To run <span class="highlight">LigParGen</span>, the <span class="highlight">BOSS (Biochemical and Organic Simulation System)</span> software is a mandatory requirement.
+          <span class="highlight">LigParGen</span> depends on <span class="highlight">BOSS</span> for generating OPLS-AA/CM1A(-LBCC) and related parameters, which are crucial for molecular simulations.
+          <span class="highlight">BOSS</span> handles tasks such as calculating atomic charges and defining molecular force fields, which are then converted by <span class="highlight">LigParGen</span> into formats suitable for various simulation platforms.
+        </p>
+        <p><span class="highlight">LigParGen</span> and the <span class="highlight">BOSS</span> software were both developed by the <span class="highlight">William L. Jorgensen Lab at Yale University</span>.</p>
+        <p>For academic use, you can send an email directly to Prof. Jorgensen at 
+            <span class="highlight">william.jorgensen@yale.edu</span> to acquire <span class="highlight">BOSS 5.0</span>.</p>
+        <p>The <span class="highlight">LigParGenGUI</span> software is a front-end to the <span class="highlight">LigParGen</span> Python package.</p>
+        <h4>More information</h4>
+        <dl>
+          <dd><span class="highlight">BOSS</span>: https://zarbi.chem.yale.edu/software.html</dd>
+          <dd><span class="highlight">LigParGen</span>: https://github.com/Isra3l/ligpargen</dd>
+          <dd><span class="highlight">LigParGenGUI</span>: https://github.com/urban233/ligpargen_gui</dd>
+        </dl>
+    </body>
+    </html>
+
+    """
+    self.txt_browser_description.setHtml(tmp_html_content)
     self.lbl = QtWidgets.QLabel("Choose location of Boss tar.gz")
+    self.main_layout.addWidget(self.txt_browser_description)
     self.main_layout.addWidget(self.lbl)
     # </editor-fold>
     # <editor-fold desc="Path input">
@@ -56,7 +111,7 @@ class DialogInstallBoss(base_dialog.BaseDialog):
 
     self.setLayout(self.main_layout)
     self.setup_ui()
-    self.resize(500, 100)
+    self.resize(500, 600)
     self.setWindowModality(Qt.WindowModality.WindowModal)
 
   def setup_ui(self) -> None:

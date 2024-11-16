@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 from PyQt6 import QtCore, QtGui, QtWidgets
-from ligpargen_gui.gui.custom_widgets import accordion, custom_button, custom_label
+from ligpargen_gui.gui.custom_widgets import accordion, custom_button, custom_label, toggle_button
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import icons
 from ligpargen_gui.gui.main.forms.auto import auto_main_frame
@@ -68,9 +68,16 @@ class MainFrame(QtWidgets.QMainWindow):
     self.structure_input_layout.setSpacing(4)
     self.structure_input_sub_layout = QtWidgets.QGridLayout()
     self.structure_input_sub_layout.setContentsMargins(0, 0, 0, 0)
-    self.lbl_structure_input = QtWidgets.QLabel("Input folder to structures")
+    self.lbl_structure_input = QtWidgets.QLabel("Input structures")
     self.txt_structure_input = QtWidgets.QLineEdit()
     self.btn_structure_input = QtWidgets.QPushButton("...")
+
+    self.structure_input_menu = custom_button.PersistentQMenu()
+    self.action_structure_input_pdb = QtGui.QAction("PDB files", self)
+    self.action_structure_input_smiles = QtGui.QAction("SMILES text file", self)
+    self.structure_input_menu.addAction(self.action_structure_input_pdb)
+    self.structure_input_menu.addAction(self.action_structure_input_smiles)
+
     icons.set_icon(self.btn_structure_input, model_definitions.IconsEnum.OPEN)
     self.btn_structure_input.setStyleSheet(
       """
@@ -159,6 +166,12 @@ class MainFrame(QtWidgets.QMainWindow):
     self.container_results = QtWidgets.QWidget()
     self.container_results_layout = QtWidgets.QVBoxLayout()
     self.lbl_output_files = QtWidgets.QLabel("Choose output files")
+    self.container_results_all = QtWidgets.QHBoxLayout()
+    self.lbl_select_all = QtWidgets.QLabel("Generate all output files")
+    self.tg_select_all = toggle_button.ToggleWidget()
+    self.container_results_all.addWidget(self.lbl_select_all)
+    self.container_results_all.addStretch()
+    self.container_results_all.addWidget(self.tg_select_all)
     self.container_results_layout.addWidget(self.lbl_output_files)
     self.container_results_layout_first_row = QtWidgets.QHBoxLayout()
     self.container_results_layout_second_row = QtWidgets.QHBoxLayout()
@@ -384,6 +397,7 @@ class MainFrame(QtWidgets.QMainWindow):
     self.output_directory_layout.addLayout(self.output_directory_sub_layout)
     # </editor-fold>
 
+    self.container_results_layout.addLayout(self.container_results_all)
     self.container_results_layout.addLayout(self.container_results_layout_first_row)
     self.container_results_layout.addLayout(self.container_results_layout_second_row)
     self.container_results_layout.addLayout(self.container_results_layout_third_row)
@@ -465,107 +479,6 @@ class MainFrame(QtWidgets.QMainWindow):
     self.setWindowIcon(QtGui.QIcon(str(model_definitions.ModelDefinitions.LOGO_FILEPATH)))
     self.setWindowTitle("LigParGen GUI")
 
-    # # Custom widgets
-    # self.ribbon_bar = ribbon_bar.RibbonBar()
-    # self.add_custom_ribbon()
-    # self.btn_blank_project = custom_button.BigCardButton("Blank Space")
-    # self.add_blank_project_button()
-    #
-    #
-    # self.list_widget = QtWidgets.QWidget()
-    # tmp_list_layout = QtWidgets.QVBoxLayout()
-    # self.list_view = QtWidgets.QListView()
-    # self.list_view.setModel(self.music_model.get_album_artist_model())
-    # self.list_label = QtWidgets.QLabel("Album Artist")
-    # tmp_list_layout.addWidget(self.list_label)
-    # tmp_list_layout.addWidget(self.list_view)
-    # self.list_widget.setLayout(tmp_list_layout)
-    # self.list_widget.setMaximumWidth(275)
-    #
-    # self.table_widget = QtWidgets.QWidget()
-    # tmp_table_layout = QtWidgets.QVBoxLayout()
-    # self.table_view = QtWidgets.QTableView()
-    # self.table_view.setModel(self.music_model)
-    # self.table_view.resizeColumnsToContents()
-    # header = self.table_view.horizontalHeader()
-    # header.setDefaultAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
-    # # Set the resize mode for each column
-    # header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-    # header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)
-    # header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.Stretch)
-    # self.table_label = QtWidgets.QLabel("Tracks")
-    # tmp_table_layout.addWidget(self.table_label)
-    # tmp_table_layout.addWidget(self.table_view)
-    # self.table_widget.setLayout(tmp_table_layout)
-    #
-    # #self.side_panel_search_tidal = custom_panel.SearchTidal(a_tidal_session)
-    # self.side_panel_running_jobs = custom_panel.RunningJobsPanel()
-    # self.side_panel_completed_jobs = custom_panel.CompletedJobsPanel()
-    #
-    # self.side_panel_stacked_widget = QtWidgets.QStackedWidget()
-    # #self.side_panel_stacked_widget.addWidget(self.side_panel_search_tidal)
-    # self.side_panel_stacked_widget.addWidget(self.side_panel_running_jobs)
-    # self.side_panel_stacked_widget.addWidget(self.side_panel_completed_jobs)
-    #
-    # self.bottom_panel = custom_panel.CustomBottomPanel("Bottom Panel Test")
-    #
-    # self.split_pane = split_pane_design.SplitPaneDesign(
-    #   [self.list_widget, self.table_widget],
-    #   self.side_panel_stacked_widget,
-    #   self.bottom_panel
-    # )
-    # self.ui.horizontalLayout.addWidget(self.split_pane)
-    # self.split_pane.hide_bottom_panel()
-    # Init gui
-    #self.init_ui()
-    #self.line_edit_search = line_edit_search.LineEditSearch(self)
-    #self.ui.verticalLayout_55.insertWidget(0, self.line_edit_search)
-    #self.ui.stackedWidget.setCurrentIndex(1)
-
-    # # List all files in dir1 and dir2
-    # files1 = glob.glob(os.path.join(tmp_path_a, '*.key'))  # e.g., AcOC.tinker.key
-    # files2 = glob.glob(os.path.join(tmp_path_b, '*.key'))  # e.g., AcOC.key
-    #
-    # # Create dictionaries to store base filenames (without .tinker) and full paths
-    # dir1_dict = {}
-    # dir2_dict = {}
-    #
-    # # Populate dir1 dictionary, strip '.tinker' from filenames
-    # for file1 in files1:
-    #   filename = os.path.basename(file1)
-    #   base_name = filename  # No need to strip anything for dir2
-    #   dir1_dict[base_name] = file1
-    #
-    # # Populate dir2 dictionary with full paths (base names directly)
-    # for file2 in files2:
-    #   filename = os.path.basename(file2)
-    #   # Remove '.tinker' part to get the base name
-    #   base_name = filename.replace('.tinker', '')
-    #   dir2_dict[base_name] = file2
-    #
-    # # Find matching pairs based on the base names
-    # matching_pairs = []
-    # for base_name in dir1_dict:
-    #   if base_name in dir2_dict.keys():
-    #     subprocess.run(
-    #       [
-    #         "powershell.exe",
-    #         ".\\external\\WinMerge\\WinMergeU.exe",
-    #         str(dir1_dict[base_name]),
-    #         str(dir2_dict[base_name]),
-    #         "/noninteractive",
-    #         "/minimize",
-    #         "/u",
-    #         "/or",
-    #         str(os.path.join(tmp_report_path, f"{base_name}_report.html"))
-    #       ]
-    #     )
-    #     matching_pairs.append((dir1_dict[base_name], dir2_dict[base_name]))
-    #
-    # # Print the matching pairs
-    # for pair in matching_pairs:
-    #   print(f"Match found: \nDir1: {pair[0]} \nDir2: {pair[1]}")
-
   # <editor-fold desc="Util">
   def a_result_is_toggled(self) -> bool:
     """Checks if at least one of the resulting files are checked."""
@@ -604,6 +517,32 @@ class MainFrame(QtWidgets.QMainWindow):
     if self.action_xplor_top.isChecked():
       return True
     return False
+
+  def toggle_all_results(self) -> None:
+    """Checks all actions of all result types."""
+    actions = [
+      self.action_apbs_pqr, self.action_charmm_pdb, self.action_charmm_prm,
+      self.action_charmm_rtf, self.action_desmond_cms, self.action_gromacs_gro,
+      self.action_gromacs_itp, self.action_lammps_lmp, self.action_openmm_pdb,
+      self.action_openmm_xml, self.action_q_lib, self.action_q_pdb,
+      self.action_q_prm, self.action_tinker_xyz, self.action_tinker_key,
+      self.action_xplor_param, self.action_xplor_top
+    ]
+    for action in actions:
+      action.setChecked(True)
+
+  def untoggle_all_results(self) -> None:
+    """Unchecks all actions of all result types."""
+    actions = [
+      self.action_apbs_pqr, self.action_charmm_pdb, self.action_charmm_prm,
+      self.action_charmm_rtf, self.action_desmond_cms, self.action_gromacs_gro,
+      self.action_gromacs_itp, self.action_lammps_lmp, self.action_openmm_pdb,
+      self.action_openmm_xml, self.action_q_lib, self.action_q_pdb,
+      self.action_q_prm, self.action_tinker_xyz, self.action_tinker_key,
+      self.action_xplor_param, self.action_xplor_top
+    ]
+    for action in actions:
+      action.setChecked(False)
 
   def get_toggled_result_types(self) -> list:
     """Gets all result types that are toggled."""

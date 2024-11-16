@@ -94,9 +94,12 @@ class MainFrameController:
     self.main_frame.about_action.triggered.connect(self.__slot_open_about)
     self.main_frame.exit_action.triggered.connect(self.main_frame.close)
     self.main_frame.txt_structure_input.textChanged.connect(self.__slot_check_structure_path_input)
-    self.main_frame.btn_structure_input.clicked.connect(self.__slot_choose_structure_input_path_from_filesystem)
+    self.main_frame.btn_structure_input.clicked.connect(self.__slot_choose_structure_input_type)
+    self.main_frame.action_structure_input_pdb.triggered.connect(self.__slot_choose_pdb_folder_path_from_filesystem)
+    self.main_frame.action_structure_input_smiles.triggered.connect(self.__slot_choose_smiles_text_filepath_from_filesystem)
     self.main_frame.txt_output_directory.textChanged.connect(self.__slot_check_output_directory_path)
     self.main_frame.btn_output_directory.clicked.connect(self.__slot_choose_result_path_from_filesystem)
+    self.main_frame.tg_select_all.toggleChanged.connect(self.__slot_select_all_result_types)
     # <editor-fold desc="Result file actions">
     self.main_frame.action_apbs_pqr.toggled.connect(self.update_main_frame_gui)
     self.main_frame.action_charmm_pdb.toggled.connect(self.update_main_frame_gui)
@@ -368,17 +371,39 @@ class MainFrameController:
   # </editor-fold>
 
   # <editor-fold desc="Structure input">
-  def __slot_choose_structure_input_path_from_filesystem(self) -> None:
-    """Chooses a structure input folder path from the filesystem."""
+  def __slot_choose_structure_input_type(self) -> None:
+    """Opens a QMenu to choose a structure input type."""
+    pos = self.main_frame.btn_structure_input.mapToGlobal(self.main_frame.btn_structure_input.rect().bottomLeft())
+    pos.setY(pos.y() + 3)
+    self.main_frame.structure_input_menu.exec(pos)
+
+  def __slot_choose_pdb_folder_path_from_filesystem(self) -> None:
+    """Chooses a pdb folder path from the filesystem."""
     default_logging.append_to_log_file(
-      logger, "'Choose structure input folder from filesystem' button was clicked."
+      logger, "'Choose PDB folder from filesystem' button was clicked."
     )
     _, tmp_path = gui_util.open_choose_folder_q_dialog(
       self.main_frame,
       self.main_frame.txt_structure_input,
-      "Open structure folder"
+      "Open PDB structure(s) folder"
     )
-    self.main_frame.txt_structure_input.setText(tmp_path)
+    if tmp_path != "":
+      self.main_frame.txt_structure_input.setText(tmp_path)
+    self.update_main_frame_gui()
+
+  def __slot_choose_smiles_text_filepath_from_filesystem(self) -> None:
+    """Chooses a smiles filepath from the filesystem."""
+    default_logging.append_to_log_file(
+      logger, "'Choose SMILES text file from filesystem' button was clicked."
+    )
+    _, tmp_path = gui_util.open_choose_file_q_dialog(
+      self.main_frame,
+      self.main_frame.txt_structure_input,
+      "Open SMILES text file",
+      "*.txt"
+    )
+    if tmp_path != "":
+      self.main_frame.txt_structure_input.setText(tmp_path)
     self.update_main_frame_gui()
 
   def __slot_check_structure_path_input(self, the_entered_text: str):
@@ -410,6 +435,12 @@ class MainFrameController:
     self.update_main_frame_gui()
 
   # </editor-fold>
+
+  def __slot_select_all_result_types(self):
+    if self.main_frame.tg_select_all.toggle_button.isChecked():
+      self.main_frame.toggle_all_results()
+    else:
+      self.main_frame.untoggle_all_results()
 
   # <editor-fold desc="Output directory">
   def __slot_choose_result_path_from_filesystem(self) -> None:
