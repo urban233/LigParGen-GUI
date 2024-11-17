@@ -16,6 +16,7 @@ class JobInputDataKeys:
   OPTIONS_MOLECULE_CHARGE = "molecule_charge"
   OPTIONS_MOL_OPT_ITER = "mol_opt_iter"
   OPTIONS_CHARGE_MODEL = "charge_model"
+  OPTIONS_TIMEOUT = "timeout"
   RESULT_FILE_TYPES = "result_file_types"  # Unsure if this is the right key, might be wrong and needs to be checked!!
 
 

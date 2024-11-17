@@ -20,7 +20,7 @@ class LigParGenOptions:
   """Represents the charge of the molecule."""
   # </editor-fold>
 
-  def __init__(self, a_mol_opt_iter: int, a_charge_model: str, a_molecule_charge: int):
+  def __init__(self, a_mol_opt_iter: int, a_charge_model: str, a_molecule_charge: int, a_timeout: int):
     # <editor-fold desc="Checks">
     if a_mol_opt_iter is None:
       default_logging.append_to_log_file(logger, "a_mol_opt_iter is None.", logging.ERROR)
@@ -44,3 +44,4 @@ class LigParGenOptions:
     self.mol_opt_iter = a_mol_opt_iter
     self.charge_model = a_charge_model
     self.molecule_charge = a_molecule_charge
+    self.timeout = a_timeout

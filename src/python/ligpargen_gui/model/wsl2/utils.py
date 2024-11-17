@@ -28,11 +28,15 @@ class Utils:
       default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
       return False
 
-  def copy_pdb_files_to_wsl2(self, an_input_folder: pathlib.Path) -> bool:
-    """Copies all pdb files from the input folder to the ligpargen_gui WSL2 scratch directory."""
+  def copy_input_files_to_wsl2(self, an_input_folder: pathlib.Path) -> bool:
+    """Copies all input files from the input folder to the ligpargen_gui WSL2 scratch directory."""
     try:
-      for tmp_file in self.loop_over_directory_with_wildcard(an_input_folder, "*.pdb"):
-        shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_DIR)
+      if an_input_folder.is_file():
+        shutil.copy(an_input_folder, constants.Paths.SCRATCH_DIR)
+      else:
+        # Maybe loop over .mol files as well!
+        for tmp_file in self.loop_over_directory_with_wildcard(an_input_folder, "*.pdb"):
+          shutil.copy(pathlib.Path(tmp_file), constants.Paths.SCRATCH_DIR)
       return True
     except Exception as e:
       default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)

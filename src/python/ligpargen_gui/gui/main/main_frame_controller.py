@@ -97,6 +97,7 @@ class MainFrameController:
     self.main_frame.btn_structure_input.clicked.connect(self.__slot_choose_structure_input_type)
     self.main_frame.action_structure_input_pdb.triggered.connect(self.__slot_choose_pdb_folder_path_from_filesystem)
     self.main_frame.action_structure_input_smiles.triggered.connect(self.__slot_choose_smiles_text_filepath_from_filesystem)
+    self.main_frame.txt_timeout.textChanged.connect(self.__slot_check_timeout_input)
     self.main_frame.txt_output_directory.textChanged.connect(self.__slot_check_output_directory_path)
     self.main_frame.btn_output_directory.clicked.connect(self.__slot_choose_result_path_from_filesystem)
     self.main_frame.tg_select_all.toggleChanged.connect(self.__slot_select_all_result_types)
@@ -436,6 +437,23 @@ class MainFrameController:
 
   # </editor-fold>
 
+  def __slot_check_timeout_input(self, the_entered_text: str):
+    """Checks in real time if the entered timeout is valid or not.
+
+    Args:
+      the_entered_text: The entered timeout to be checked.
+
+    Raises:
+      exception.NoneValueError: If `the_entered_text` is None.
+    """
+    # <editor-fold desc="Checks">
+    if the_entered_text is None:
+      default_logging.append_to_log_file(logger, "the_entered_text is None.", logging.ERROR)
+      raise exception.NoneValueError("the_entered_text is None.")
+    # </editor-fold>
+    tmp_success, tmp_status_text = validator.validate_timeout(the_entered_text)
+    self.main_frame.txt_timeout.setText(tmp_status_text)
+
   def __slot_select_all_result_types(self):
     if self.main_frame.tg_select_all.toggle_button.isChecked():
       self.main_frame.toggle_all_results()
@@ -490,13 +508,18 @@ class MainFrameController:
     self.job_progress_model = job_progress_model.JobProgressModel()
     self.job_progress_model.create_root_node()
     self.basic_controllers["JobProgress"].set_job_progress_model(self.job_progress_model)
+    if self.main_frame.txt_timeout.text() != "":
+      tmp_timeout = int(self.main_frame.txt_timeout.text())
+    else:
+      tmp_timeout = 60
     tmp_job_input = ligpargen_job_input.LigParGenJobInput(
       pathlib.Path(self.main_frame.txt_structure_input.text()),
       pathlib.Path(self.main_frame.txt_output_directory.text()),
       ligpargen_options.LigParGenOptions(
         int(self.main_frame.cbox_mol_optimization_iter.currentText()),
         self.main_frame.cbox_charge_model.currentText(),
-        int(self.main_frame.cbox_molecule_charge.currentText())
+        int(self.main_frame.cbox_molecule_charge.currentText()),
+        tmp_timeout
       ),
       self.main_frame.get_toggled_result_types()
     )

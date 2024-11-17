@@ -106,3 +106,22 @@ def validate_path(the_current_entered_text: str) -> tuple[bool, str, str]:
   if not pathlib.Path(the_current_entered_text).exists():
     return False, 'Path could not be found!', """QLineEdit {color: #ba1a1a; border-color: #ba1a1a;}"""
   return True, '', """QLineEdit {color: #000000; border-color: #DCDBE3;}"""
+
+
+def validate_timeout(text) -> tuple[bool, str]:
+  """Validates the input for x-axis units.
+
+  Args:
+      text: The input text to be validated.
+  """
+  print(text)
+  allowed_chars = set("0123456789")
+  new_text = "".join(char for char in text if char in allowed_chars)
+  if new_text == "":
+    return False, new_text
+  elif len(new_text) > 3:
+    return False, new_text[:3]
+  elif new_text[0] == "0":
+    return False, ""
+  else:
+    return True, new_text

@@ -144,30 +144,60 @@ class Server:
       if not tmp_utils.prepare_folder_structure():
         default_logging.append_to_log_file(logger, "Preparing folder structure failed!", logging.ERROR)
         return False
-      if not tmp_utils.copy_pdb_files_to_wsl2(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]):
+      if not tmp_utils.copy_input_files_to_wsl2(pathlib.Path(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER])):
         default_logging.append_to_log_file(logger, "Copying pdb files to WSL2 failed!", logging.ERROR)
         return False
       subprocess.run(["dos2unix", str(constants.Paths.LIGPARGEN_BATCH_FILEPATH)])
       default_logging.append_to_log_file(logger, "Preparing environment finished.", logging.INFO)
       # </editor-fold>
-      tmp_number_of_mols = len(os.listdir(constants.Paths.SCRATCH_DIR)) - 1  # -1 due to results dir
-      i = 1
-      for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pdb"):
-        default_logging.append_to_log_file(logger, f"Starting LigParGen conversion of {tmp_file} ...", logging.INFO)
-        if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
-          tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} failed!"
-          default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} failed!", logging.ERROR)
-        else:
-          tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} finished."
-          default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} finished", logging.INFO)
-        self._sender_socket.send_json(
-          json.dumps({
-            "msg": tmp_msg,
-            "finished_mols": (i, tmp_number_of_mols),
-            "status": "in-progress"
-          })
-        )
-        i += 1
+      # <editor-fold desc="Convert SMILES">
+      if pathlib.Path(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]).is_file():
+        tmp_filepath = pathlib.Path(constants.Paths.SCRATCH_DIR / pathlib.Path(self.job_input_data[constants.JobInputDataKeys.INPUT_FOLDER]).name)
+        # Open the file in read mode
+        with open(str(tmp_filepath), "r") as file:
+          # Read all lines and remove the newline characters
+          tmp_smiles = [tmp_line.strip() for tmp_line in file.readlines()]
+        default_logging.append_to_log_file(logger, f"These are the SMILES: {tmp_smiles}", logging.INFO)
+        tmp_number_of_mols = len(tmp_smiles)
+        i = 1
+        for tmp_smiles_code in tmp_smiles:
+          default_logging.append_to_log_file(logger, f"Starting LigParGen conversion of {tmp_smiles_code} ...", logging.INFO)
+          if not self.run_ligpargen_command_with_smiles(tmp_smiles_code):
+            tmp_msg = f"LigParGen conversion of {tmp_smiles_code} failed!"
+            default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_smiles_code} failed!", logging.ERROR)
+          else:
+            tmp_msg = f"LigParGen conversion of {tmp_smiles_code} finished."
+            default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_smiles_code} finished", logging.INFO)
+          self._sender_socket.send_json(
+            json.dumps({
+              "msg": tmp_msg,
+              "finished_mols": (i, tmp_number_of_mols),
+              "status": "in-progress"
+            })
+          )
+          i += 1
+      # </editor-fold>
+      # <editor-fold desc="Convert PDB files">
+      else:
+        tmp_number_of_mols = len(os.listdir(constants.Paths.SCRATCH_DIR)) - 1  # -1 due to results dir
+        i = 1
+        for tmp_file in tmp_utils.loop_over_directory_with_wildcard(constants.Paths.SCRATCH_DIR, "*.pdb"):
+          default_logging.append_to_log_file(logger, f"Starting LigParGen conversion of {tmp_file} ...", logging.INFO)
+          if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
+            tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} failed!"
+            default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} failed!", logging.ERROR)
+          else:
+            tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} finished."
+            default_logging.append_to_log_file(logger, f"LigParGen conversion of {tmp_file} finished", logging.INFO)
+          self._sender_socket.send_json(
+            json.dumps({
+              "msg": tmp_msg,
+              "finished_mols": (i, tmp_number_of_mols),
+              "status": "in-progress"
+            })
+          )
+          i += 1
+      # </editor-fold>
       # <editor-fold desc="Post-processing">
       default_logging.append_to_log_file(logger, "Post processing result files ...", logging.INFO)
       if not tmp_utils.filter_results(self.job_input_data[constants.JobInputDataKeys.RESULT_FILE_TYPES]):
@@ -216,7 +246,31 @@ class Server:
          "-o", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOL_OPT_ITER]),
          "-cgen", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_CHARGE_MODEL])],
         cwd=str(constants.Paths.SCRATCH_DIR),  # The cwd needs to be set to ensure that the temporarily files of ligpargen are stored there!
-        timeout=50,
+        timeout=int(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_TIMEOUT]),
+        capture_output=True
+      )
+      default_logging.append_to_log_file(logger, f"The value of the CompletedProcess object of the LigParGen command is: {tmp_complete_process}", logging.DEBUG)
+      if tmp_complete_process.returncode != 0:
+        default_logging.append_to_log_file(logger, "Error: Usage or syntax error occurred.", logging.ERROR)
+        default_logging.append_to_log_file(logger, f"Error output: {tmp_complete_process.stderr.decode()}", logging.ERROR)
+        return False
+      else:
+        return True
+    except Exception as e:
+      default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
+      return False
+
+  def run_ligpargen_command_with_smiles(self, a_smiles: str) -> bool:
+    try:
+      tmp_complete_process = subprocess.run(
+        ["bash", str(constants.Paths.LIGPARGEN_BATCH_FILEPATH),
+         "-s", a_smiles,
+         "-n", a_smiles,
+         "-c", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOLECULE_CHARGE]),
+         "-o", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_MOL_OPT_ITER]),
+         "-cgen", str(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_CHARGE_MODEL])],
+        cwd=str(constants.Paths.SCRATCH_DIR),  # The cwd needs to be set to ensure that the temporarily files of ligpargen are stored there!
+        timeout=int(self.job_input_data[constants.JobInputDataKeys.OPTIONS][constants.JobInputDataKeys.OPTIONS_TIMEOUT]),
         capture_output=True
       )
       default_logging.append_to_log_file(logger, f"The value of the CompletedProcess object of the LigParGen command is: {tmp_complete_process}", logging.DEBUG)

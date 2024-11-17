@@ -30,7 +30,8 @@ class MainFrame(QtWidgets.QMainWindow):
 
     # <editor-fold desc="Menu bar">
     menu_bar = self.menuBar()
-    self.file_menu = menu_bar.addMenu('Application')
+    self.application_menu = menu_bar.addMenu('Application')
+    #self.preferences_menu = self.application_menu.addMenu('Preferences')
     self.help_menu = menu_bar.addMenu('Help')
     #self.compare_action = QtGui.QAction('Compare', self)
     self.exit_action = QtGui.QAction('Exit', self)
@@ -39,8 +40,10 @@ class MainFrame(QtWidgets.QMainWindow):
     self.clear_all_logs_action = QtGui.QAction('Clear all logs', self)
     self.about_action = QtGui.QAction('About', self)
     #self.file_menu.addAction(self.compare_action)
-    self.file_menu.addSeparator()
-    self.file_menu.addAction(self.exit_action)
+    # self.edit_action = self.preferences_menu.addAction('Edit')
+    # self.restore_action = self.preferences_menu.addAction('Restore')
+    self.application_menu.addSeparator()
+    self.application_menu.addAction(self.exit_action)
     self.help_menu.addAction(self.docs_action)
     self.help_menu.addAction(self.open_logs_folder_action)
     self.help_menu.addAction(self.clear_all_logs_action)
@@ -134,6 +137,15 @@ class MainFrame(QtWidgets.QMainWindow):
     self.molecule_charge_layout.addStretch()
     self.molecule_charge_layout.addWidget(self.cbox_molecule_charge)
     self.container_options_layout.addLayout(self.molecule_charge_layout)
+    self.timeout_layout = QtWidgets.QHBoxLayout()
+    self.lbl_timeout = QtWidgets.QLabel("Set LigParGen timeout (in secs)")
+    self.txt_timeout = QtWidgets.QLineEdit()
+    self.txt_timeout.setPlaceholderText("60")
+    self.txt_timeout.setStyleSheet("""QLineEdit {min-width: 45px; max-width: 45px; color: #000000; border-color: #DCDBE3;}""")
+    self.timeout_layout.addWidget(self.lbl_timeout)
+    self.timeout_layout.addStretch()
+    self.timeout_layout.addWidget(self.txt_timeout)
+    self.container_options_layout.addLayout(self.timeout_layout)
     self.container_options.setLayout(self.container_options_layout)
 
     self.accordion_section_options = accordion.AccordionSection(
