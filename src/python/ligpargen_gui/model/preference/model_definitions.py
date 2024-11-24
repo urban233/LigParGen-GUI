@@ -52,7 +52,7 @@ class ModelDefinitions:
   """Path to the logo image"""
   STATUS_MESSAGE_TIMEOUT = 5000  # value in msec
   """The standard status bar message timeout"""
-  VERSION_NUMBER = "0.1.5"  # The version number MUST be in double quotes
+  VERSION_NUMBER = "0.1.6"  # The version number MUST be in double quotes
   """The version number of the application"""
   URL_TO_REMOTE_VERSION = "https://w-hs.sciebo.de/s/vTFDNkX8aA6p1cJ/download"
   """The url to the remote version file of the application"""

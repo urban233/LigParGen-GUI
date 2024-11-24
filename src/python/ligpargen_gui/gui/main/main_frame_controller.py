@@ -183,8 +183,11 @@ class MainFrameController:
     # </editor-fold>
     try:
       tmp_msg, tmp_finished_mols, _ = a_progress_info
-      self.job_progress_model.add_job_progress_message(tmp_msg)
-      tmp_progress = (tmp_finished_mols[0]/tmp_finished_mols[1]) * 80
+      if tmp_finished_mols[1] != -1:  # -1 indicates a finished job
+        self.job_progress_model.add_job_progress_message(tmp_msg)
+        tmp_progress = (tmp_finished_mols[0]/tmp_finished_mols[1]) * 80
+      else:
+        tmp_progress = 80
       self.basic_controllers["JobProgress"].set_progress_bar_value(int(tmp_progress))
     except Exception as e:
       default_logging.append_to_log_file(logger, e.__str__(), logging.ERROR)
@@ -583,7 +586,8 @@ class MainFrameController:
     self.start_server()
     self.client.send_job_input(a_job_input.serialize(a_job_input.get_obj_as_dict()))
     self.client.check_progress_status()
-    self.client.copy_results(a_job_input.output_folder)
+    if not self.client.copy_results(a_job_input.output_folder):
+      self.client.job_status = "failed"
 
   def __await_run_ligpargen_job(self) -> None:
     """Awaits the ligpargen job and runs post-job tasks."""
@@ -592,7 +596,7 @@ class MainFrameController:
       self.job_progress_model.add_job_progress_message("LigParGen job failed!")
       self.basic_controllers["JobProgress"].set_progress_bar_value(int(0))
       tmp_msg_box = custom_message_box.CustomMessageBoxYesNo(
-        "LigParGen job failed!\nPlease consult the log file to get more information.\n Do you want to open the log folder now?",
+        "LigParGen job failed!\nPlease consult the log file to get more information.\nDo you want to open the log folder now?",
         "Job",
         custom_message_box.CustomMessageBoxIcons.DANGEROUS.value,
       )
@@ -603,7 +607,7 @@ class MainFrameController:
       self.job_progress_model.add_job_progress_message("LigParGen job finished!")
       self.basic_controllers["JobProgress"].set_progress_bar_value(int(100))
       tmp_msg_box = custom_message_box.CustomMessageBoxYesNo(
-        "The LigParGen job was successful.\nDo you want to open the output folder?",
+        "The LigParGen job finished.\nDo you want to open the output folder?",
         "Job",
         custom_message_box.CustomMessageBoxIcons.INFORMATION.value,
       )

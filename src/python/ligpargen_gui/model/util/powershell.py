@@ -25,7 +25,7 @@ def await_run_wsl_command(a_cmd: list) -> bool:
   tmp_cmd += a_cmd
   tmp_complete_process = subprocess.run(tmp_cmd)
   if tmp_complete_process.returncode != 0:
-    default_logging.append_to_log_file(logger, "Error: Usage or syntax error occurred.", logging.ERROR)
+    default_logging.append_to_log_file(logger, f"Process finished with the return code {tmp_complete_process.returncode}.", logging.ERROR)
     default_logging.append_to_log_file(logger, f"Error output: {tmp_complete_process.stderr}", logging.ERROR)
     return False
   return True

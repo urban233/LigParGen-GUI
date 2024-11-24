@@ -345,7 +345,7 @@ class Server:
       self._sender_socket.send_json(
         json.dumps({
           "msg": a_msg,
-          "finished_mols": (1, 1),
+          "finished_mols": (1, -1),  # -1 indicates a finished job
           "status": tmp_status
         })
       )

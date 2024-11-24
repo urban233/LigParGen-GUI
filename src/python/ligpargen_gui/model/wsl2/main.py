@@ -24,8 +24,8 @@ if __name__ == '__main__':
       tmp_server.send_finished_signal("Job failed!", has_failed=True)
       exit(0)
     else:
-      default_logging.append_to_log_file(logger, "Job finished successfully.", logging.INFO)
-      tmp_server.send_finished_signal("Job finished successfully.")
+      default_logging.append_to_log_file(logger, "Job finished.", logging.INFO)
+      tmp_server.send_finished_signal("Job finished.")
       exit(0)
   except Exception as e:
     default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.FATAL)

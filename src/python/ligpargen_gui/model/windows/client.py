@@ -38,7 +38,7 @@ class Client(QtCore.QObject):
     # </editor-fold>
     self._sender_socket.send_json(a_job_input_as_json)
 
-  def copy_results(self, a_dest_folder: pathlib.Path) -> None:
+  def copy_results(self, a_dest_folder: pathlib.Path) -> bool:
     """Copies the results from the WSL2 filesystem to the Windows filesystem.
 
     Args:
@@ -51,10 +51,10 @@ class Client(QtCore.QObject):
     tmp_output_folder: str = filesystem_util.windows_to_wsl_path(str(a_dest_folder))
     tmp_wsl_log_path: str = filesystem_util.windows_to_wsl_path(str(model_definitions.ModelDefinitions.DEFAULT_WSL2_LOG_PATH))
     powershell.await_run_wsl_command(
-      ["cp", "-r", "/home/alma_ligpargen/ligpargen_gui/scratch/results/*", f"{tmp_output_folder}"]
-    )
-    powershell.await_run_wsl_command(
       ["cp", "-r", "/home/alma_ligpargen/ligpargen_gui/logs/*", tmp_wsl_log_path]
+    )
+    return powershell.await_run_wsl_command(
+      ["cp", "-r", "/home/alma_ligpargen/ligpargen_gui/scratch/results/*", f"{tmp_output_folder}"]
     )
 
   def check_progress_status(self) -> None:
