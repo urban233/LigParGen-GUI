@@ -4,7 +4,7 @@ from PyQt6 import QtWidgets
 from PyQt6 import QtCore
 from ligpargen_gui.gui.base_classes import base_controller
 from ligpargen_gui.gui.util import gui_util
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -27,15 +27,10 @@ class JobProgressController(base_controller.BaseController):
     """Constructor.
     
     Args:
-      a_dialog: a dialog instance to be managed by the controller
-
-    Raises:
-      exception.NoneValueError: If `a_dialog` is None.
+      a_dialog: A dialog instance to be managed by the controller
     """
     # <editor-fold desc="Checks">
-    if a_dialog is None:
-      default_logging.append_to_log_file(logger, "a_dialog is None.", logging.ERROR)
-      raise exception.NoneValueError("a_dialog is None.")
+    safeguard.CHECK(a_dialog is not None)
     # </editor-fold>
     super().__init__()
     # <editor-fold desc="Instance attributes">
@@ -58,7 +53,7 @@ class JobProgressController(base_controller.BaseController):
     self.job_progress_model = None
     self.connect_all_signals()
 
-  def connect_all_signals(self):
+  def connect_all_signals(self) -> None:
     """Connects all signals with their appropriate slot methods."""
     self._dialog.dialogClosed.connect(self.set_dialog_close_as_canceled)
     self._dialog.ui.btn_cancel.clicked.connect(self.close_dialog)
@@ -77,15 +72,28 @@ class JobProgressController(base_controller.BaseController):
     self.was_canceled = True
     self.restore_ui()
 
-  def set_job_progress_model(self, a_job_progress_model):
-    """Sets the job progress model to update the list view with new messages."""
+  def set_job_progress_model(self, a_job_progress_model) -> None:
+    """Sets the job progress model to update the list view with new messages.
+
+    Args:
+      a_job_progress_model: The model to manage the job progress messages.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(a_job_progress_model is not None)
+    # </editor-fold>
     self.job_progress_model = a_job_progress_model
     self._dialog.ui.list_view_progress.setModel(self.job_progress_model)
 
   def set_progress_bar_value(self, a_progress_bar_value: int) -> None:
+    """Sets the value of the progress bar.
+
+    Args:
+      a_progress_bar_value: The value to set the progress bar to.
+    """
+    safeguard.CHECK(0 <= a_progress_bar_value <= 100)
     self._dialog.ui.prog_bar.setValue(a_progress_bar_value)
 
-  def close_dialog(self):
+  def close_dialog(self) -> None:
     """Closes the dialog and restores the ui."""
     self._dialog.close()
     self.restore_ui()

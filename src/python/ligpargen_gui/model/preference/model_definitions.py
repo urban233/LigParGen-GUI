@@ -3,24 +3,26 @@ import enum
 import os
 import pathlib
 
+from ligpargen_gui.model.util import global_vars
+
 
 class ModelDefinitions:
   """Global basic definitions for the model.
 
   Should be used as singleton class!
   """
-  # <editor-fold desc="For development purposes">
-  PROGRAM_ROOT_PATH = pathlib.Path(__file__).parent.parent.parent.parent.parent.parent
-  """Path to the root of the program."""
-  PROGRAM_SRC_PATH = r"C:\Users\student\github_repos\LigParGen-GUI\src"
-  # </editor-fold>
-
-  # <editor-fold desc="Deployment paths">
-  #PROGRAM_ROOT_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal"
-  """Path to the root of the program."""
-  #PROGRAM_SRC_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal\\src"
-  # </editor-fold>
-
+  if global_vars.DEBUG:
+    # <editor-fold desc="For development purposes">
+    PROGRAM_ROOT_PATH = pathlib.Path(__file__).parent.parent.parent.parent.parent.parent
+    """Path to the root of the program."""
+    PROGRAM_SRC_PATH = r"C:\Users\student\github_repos\LigParGen-GUI\src"
+    # </editor-fold>
+  else:
+    # <editor-fold desc="Deployment paths">
+    PROGRAM_ROOT_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal"
+    """Path to the root of the program."""
+    PROGRAM_SRC_PATH = "C:\\ProgramData\\IBCI\\LigParGenGUI\\bin\\_internal\\src"
+    # </editor-fold>
   DISTRO_NAME = "almaLigParGen9"
   """Name of the WSL2 distro"""
   SETTINGS_FILENAME = 'settings.json'
@@ -50,19 +52,24 @@ class ModelDefinitions:
   """Path to the logo image"""
   STATUS_MESSAGE_TIMEOUT = 5000  # value in msec
   """The standard status bar message timeout"""
-
   VERSION_NUMBER = "0.1.5"  # The version number MUST be in double quotes
-
+  """The version number of the application"""
   URL_TO_REMOTE_VERSION = "https://w-hs.sciebo.de/s/vTFDNkX8aA6p1cJ/download"
+  """The url to the remote version file of the application"""
   REMOTE_VERSION_FILEPATH = pathlib.Path(f"{DEFAULT_SETTINGS_PATH}/remote_version.json")
+  """The filepath of the remote version file after its downloaded"""
   URL_TO_UPDATE_SETUP = "https://w-hs.sciebo.de/s/0ZA3494SQbICAbu/download"
+  """The url to the update setup file of the application"""
 
 
 class LigParGenOptions:
   """Class that contains all ligpargen options of the webserver."""
   MOLECULE_OPTIMIZATION_ITERATIONS = ["0", "1", "2", "3"]
+  """Options for different molecule optimization iterations supported by the web server."""
   CHARGE_MODEL = ["CM1A-LBCC", "CM1A"]
+  """Options for different charge models supported by the web server."""
   MOLECULE_CHARGE = ["0", "-1", "-2", "+1", "+2"]
+  """Options for different molecule charges supported by the web server."""
 
 
 class LigParGenResultFileTypes(enum.StrEnum):
@@ -89,7 +96,9 @@ class LigParGenResultFileTypes(enum.StrEnum):
 class JopTypes(enum.StrEnum):
   """Enumeration for storing possible job types."""
   RUN_LIGPARGEN = "RUN LigParGen"
+  """Job type for a LigParGen job."""
   INSTALL_BOSS = "INSTALL Boss"
+  """Job type for a install BOSS job."""
 
 
 class RolesEnum(enum.IntEnum):

@@ -3,6 +3,8 @@ import os
 import pathlib
 import subprocess
 
+from ligpargen_gui.model.util import safeguard
+
 
 def compare_files(
         a_reference_path: pathlib.Path,
@@ -10,9 +12,28 @@ def compare_files(
         a_report_path: pathlib.Path,
         a_file_extension: str,
         a_result_type: str
-):
-  """Compares the files of two directories."""
-  # TODO: Add argument checks & expand doc string
+) -> None:
+  """Compares the files of two directories.
+
+  Args:
+    a_reference_path: The path to the reference files
+    a_to_compare_path: The path to the comparison files
+    a_report_path: The path to store the report files
+    a_file_extension: The extension of the files to compare
+    a_result_type: The type of results to compare
+  """
+  # <editor-fold desc="Checks">
+  safeguard.CHECK(a_reference_path is not None)
+  safeguard.CHECK(a_reference_path.exists())
+  safeguard.CHECK(a_to_compare_path is not None)
+  safeguard.CHECK(a_to_compare_path.exists())
+  safeguard.CHECK(a_report_path is not None)
+  safeguard.CHECK(a_report_path.exists())
+  safeguard.CHECK(a_file_extension is not None)
+  safeguard.ENSURE(a_file_extension != "")
+  safeguard.CHECK(a_result_type is not None)
+  safeguard.ENSURE(a_result_type != "")
+  # </editor-fold>
   tmp_reference_filepaths = {}
   tmp_to_compare_filepaths = {}
 

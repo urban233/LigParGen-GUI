@@ -27,6 +27,7 @@ from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from ligpargen_gui.model.custom_logging import default_logging
+from ligpargen_gui.model.util import safeguard
 
 logger = default_logging.setup_logger(__file__)
 __docformat__ = "google"
@@ -46,12 +47,24 @@ class ToggleButton(QtWidgets.QCheckBox):
     """Initializes the checkbox with the given parameters.
 
     Args:
-        width (int): The width of the checkbox.
-        bg_color (str): The background color of the checkbox.
-        circle_color (str): The color of the empty circle.
-        active_circle_color (str): The color of the filled circle when checkbox is active.
-        active_color (str): The color of the checkbox when active.
+      width (int): The width of the checkbox.
+      bg_color (str): The background color of the checkbox.
+      circle_color (str): The color of the empty circle.
+      active_circle_color (str): The color of the filled circle when checkbox is active.
+      active_color (str): The color of the checkbox when active.
     """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(width is not None)
+    safeguard.CHECK(width > 0)
+    safeguard.CHECK(bg_color is not None)
+    safeguard.CHECK(bg_color != "")
+    safeguard.CHECK(circle_color is not None)
+    safeguard.CHECK(circle_color != "")
+    safeguard.CHECK(active_circle_color is not None)
+    safeguard.CHECK(active_circle_color != "")
+    safeguard.CHECK(active_color is not None)
+    safeguard.CHECK(active_color != "")
+    # </editor-fold>
     QtWidgets.QCheckBox.__init__(self)
     # default parameters
     self.setFixedSize(width, 19)
@@ -67,18 +80,21 @@ class ToggleButton(QtWidgets.QCheckBox):
     """Overrides the QCheckBox.hitButton method.
 
     Args:
-        pos: QPoint object representing the position of the button press
+      pos: QPoint object representing the position of the button press
 
     Returns:
-        True if the button was hit, False otherwise.
+      True if the button was hit, False otherwise.
     """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(pos is not None)
+    # </editor-fold>
     return self.contentsRect().contains(pos)
 
   def paintEvent(self, e) -> None:
     """Overrides the QCheckBox.paintEvent method.
 
     Args:
-        e: QPaintEvent object representing the event that triggered the painting
+      e: QPaintEvent object representing the event that triggered the painting
 
     This method is called automatically whenever the widget needs to be repainted. It is used to paint the custom appearance of the widget.
     """

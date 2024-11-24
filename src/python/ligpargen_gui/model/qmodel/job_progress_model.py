@@ -8,7 +8,7 @@ from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 
 from ligpargen_gui.model.preference import model_definitions
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -36,7 +36,15 @@ class JobProgressModel(QtGui.QStandardItemModel):
     return True if self.rowCount() == 0 else False
 
   def add_job_progress_message(self, message: str) -> None:
-    """Adds a row to the model from a simple message."""
+    """Adds a row to the model from a simple message.
+
+    Args:
+      message: The message to add to the model.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(message is not None)
+    safeguard.ENSURE(message != "")
+    # </editor-fold>
     if self.root_node is None:
       self.create_root_node()
 

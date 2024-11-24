@@ -2,7 +2,7 @@ import logging
 import pathlib
 from PyQt6 import QtGui, QtCore, QtWidgets
 from ligpargen_gui.model.preference import model_definitions
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -100,14 +100,9 @@ def get_icon(
 
   Returns:
     QtGui.QIcon: The corresponding QIcon object.
-
-  Raises:
-    exception.NoneValueError: If `icon_name` is None.
   """
   # <editor-fold desc="Checks">
-  if icon_name is None:
-    default_logging.append_to_log_file(logger, "icon_name is None.", logging.ERROR)
-    raise exception.NoneValueError("icon_name is None.")
+  safeguard.CHECK(icon_name is not None)
   # </editor-fold>
   icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_PATHS[icon_name.value])))
   if disabled_icon_name:
@@ -123,7 +118,7 @@ def set_icon(
       icon_name: model_definitions.IconsEnum,
       disabled_icon_name: model_definitions.IconsEnum = None,
       size: QtCore.QSize = QtCore.QSize(32, 32)
-):
+) -> None:
   """
   Function to set an icon given its widget, its name and set its size.
 
@@ -138,20 +133,11 @@ def set_icon(
 
   Returns:
     QtGui.QIcon: The corresponding QIcon object.
-
-  Raises:
-    exception.NoneValueError: If `a_button` ,`icon_name` or `size` is None.
   """
   # <editor-fold desc="Checks">
-  if a_button is None:
-    default_logging.append_to_log_file(logger, "a_button is None.", logging.ERROR)
-    raise exception.NoneValueError("a_button is None.")
-  if icon_name is None:
-    default_logging.append_to_log_file(logger, "icon_name is None.", logging.ERROR)
-    raise exception.NoneValueError("icon_name is None.")
-  if size is None:
-    default_logging.append_to_log_file(logger, "size is None.", logging.ERROR)
-    raise exception.NoneValueError("size is None.")
+  safeguard.CHECK(a_button is not None)
+  safeguard.CHECK(icon_name is not None)
+  safeguard.CHECK(size is not None)
   # </editor-fold>
   a_button.setIcon(get_icon(icon_name, disabled_icon_name))
   a_button.setIconSize(

@@ -8,7 +8,7 @@ from ligpargen_gui.gui.base_classes import base_dialog
 from ligpargen_gui.gui.dialog.forms.auto import auto_dialog_job_progress
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import styles_utils, icons
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -25,7 +25,11 @@ class DialogJobProgress(base_dialog.BaseDialog):
   # </editor-fold>
 
   def __init__(self, a_parent) -> None:
-    """Constructor."""
+    """Constructor.
+
+    Args:
+      a_parent: A dialog that defines the modality of this dialog.
+    """
     super().__init__(parent=a_parent)
     self.ui = auto_dialog_job_progress.Ui_Dialog()
     self.ui.setupUi(self)
@@ -149,15 +153,9 @@ class DialogJobProgress(base_dialog.BaseDialog):
 
     Args:
       event: The close event.
-
-    Raises:
-      exception.NoneValueError: If `event` is None.
-
     """
     # <editor-fold desc="Checks">
-    if event is None:
-      default_logging.append_to_log_file(logger, "event is None.", logging.ERROR)
-      raise exception.NoneValueError("event is None.")
+    safeguard.CHECK(event is not None)
     # </editor-fold>
     event.accept()
     self.dialogClosed.emit()

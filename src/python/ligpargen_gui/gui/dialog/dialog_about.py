@@ -61,7 +61,6 @@ class DialogAbout(QtWidgets.QDialog):
     self.ui.tableView.resizeColumnsToContents()
     self.ui.tableView.setEditTriggers(QtWidgets.QTableView.EditTrigger.NoEditTriggers)
 
-  # @SLOT
   def close_dialog(self) -> None:
     """Closes the dialog."""
     self.close()

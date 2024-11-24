@@ -8,7 +8,7 @@ from PyQt6 import QtWidgets
 from ligpargen_gui.gui.custom_widgets import custom_label
 from ligpargen_gui.gui.preference import gui_definitions
 from ligpargen_gui.model.preference import model_definitions
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -23,18 +23,11 @@ class StatusBarManager:
     """Constructor.
 
     Args:
-        the_main_view (QMainWindow): The main view of the application.
-
-    Raises:
-        exception.IllegalArgumentError: If `the_main_view` is None.
+      the_main_view (QMainWindow): The main view of the application.
     """
     # <editor-fold desc="Checks">
-    if the_main_view is None:
-      logger.error("the_main_view is None.")
-      raise exception.IllegalArgumentError("the_main_view is None.")
-
+    safeguard.CHECK(the_main_view is not None)
     # </editor-fold>
-
     self._view = the_main_view
     self._update_signal = None
 
@@ -69,10 +62,7 @@ class StatusBarManager:
     self._progress_bar.hide()
     self.temp_message_timer = QtCore.QTimer()
 
-    # self._connect_ui_elements()
-
   # <editor-fold desc="Util methods">
-
   # <editor-fold desc="Methods for styling the status bar">
   def _style_status_bar_for_normal_message(self) -> None:
     """Sets custom style sheet for a normal message."""
@@ -117,31 +107,19 @@ class StatusBarManager:
     )
 
   # </editor-fold>
-
   def _setup_status_bar_message_timer(
       self, running_task: bool = False, the_long_running_task_message: str = ""
   ) -> None:
     """Connects the timer to reset the status bar to the long-running task message.
 
     Args:
-        running_task (bool): Flag for indicating if a long-running task is currently running.
-        the_long_running_task_message (str): Message to be displayed when a long-running task is running.
-
-    Raises:
-        exception.IllegalArgumentError: If any of the arguments are None.
+      running_task (bool): Flag for indicating if a long-running task is currently running.
+      the_long_running_task_message (str): Message to be displayed when a long-running task is running.
     """
     # <editor-fold desc="Checks">
-    if running_task is None:
-      logger.error("running_task is None.")
-      raise exception.IllegalArgumentError("running_task is None.")
-    if the_long_running_task_message is None:
-      logger.error("the_long_running_task_message is None.")
-      raise exception.IllegalArgumentError(
-          "the_long_running_task_message is None."
-      )
-
+    safeguard.CHECK(running_task is not None)
+    safeguard.CHECK(the_long_running_task_message is not None)
     # </editor-fold>
-
     if self.temp_message_timer:
       self.temp_message_timer.stop()  # Stop previous timer if exists
     self.temp_message_timer.setSingleShot(True)
@@ -160,7 +138,14 @@ class StatusBarManager:
   def _switch_to_long_running_task_message(
       self, a_long_running_task_message: str
   ) -> None:
-    """Shows a long-running task message as a permanent message."""
+    """Shows a long-running task message as a permanent message.
+
+    Args:
+      a_long_running_task_message: Message to set as permanent message.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(a_long_running_task_message is not None)
+    # </editor-fold>
     self.show_permanent_message(a_long_running_task_message)
 
   def _restore_status_bar(self) -> None:
@@ -170,25 +155,15 @@ class StatusBarManager:
 
   # </editor-fold>
 
-  def _connect_ui_elements(self) -> None:
-    """Connects all UI elements to their corresponding slot functions in the class."""
-    # self._permanent_message.textChanged.connect(self._manage_status_bar_ui)
-    raise NotImplementedError()
-
   # <editor-fold desc="Public methods">
   def show_permanent_message(self, a_message: str) -> None:
     """Shows a permanent message in the statusbar.
 
     Args:
-        a_message: A string representing the message that will be displayed as a permanent message.
-
-    Raises:
-        exception.IllegalArgumentError: If `a_message` is None.
+      a_message: A string representing the message that will be displayed as a permanent message.
     """
     # <editor-fold desc="Checks">
-    if a_message is None:
-      logger.error("a_message is None.")
-      raise exception.IllegalArgumentError("a_message is None.")
+    safeguard.CHECK(a_message is not None)
     # </editor-fold>
     self._permanent_message.setText(a_message)
 
@@ -198,21 +173,12 @@ class StatusBarManager:
     """Shows an error message in the statusbar.
 
     Args:
-        a_message (str): The error message to be displayed.
-        overwrite_permanent_message (bool, optional): Flag indicating whether to overwrite the permanent message. Defaults to True.
-
-    Raises:
-        exception.IllegalArgumentError: If any of the arguments are None.
+      a_message (str): The error message to be displayed.
+      overwrite_permanent_message (bool, optional): Flag indicating whether to overwrite the permanent message. Defaults to True.
     """
     # <editor-fold desc="Checks">
-    if a_message is None:
-      logger.error("a_message is None.")
-      raise exception.IllegalArgumentError("a_message is None.")
-    if overwrite_permanent_message is None:
-      logger.error("overwrite_permanent_message is None.")
-      raise exception.IllegalArgumentError(
-          "overwrite_permanent_message is None."
-      )
+    safeguard.CHECK(a_message is not None)
+    safeguard.CHECK(overwrite_permanent_message is not None)
     # </editor-fold>
     self._style_status_bar_for_error_message()
     self._view.statusBar().showMessage("")
@@ -231,23 +197,14 @@ class StatusBarManager:
     """Shows a temporary message in the statusbar.
 
     Args:
-        a_temporary_message (str): The message to be displayed temporarily in the status bar.
-        a_with_timeout_flag (bool): Optional parameter that specifies whether the message should be displayed for a limited time. Defaults to True.
-        a_timeout (int): Optional parameter that specifies the amount of time (in milliseconds) the message should be displayed if a_with_timeout_flag is set to True. Defaults to the value of constants.STATUS_MESSAGE_TIMEOUT.
-
-    Raises:
-        exception.IllegalArgumentError: If any of the arguments are None.
+      a_temporary_message (str): The message to be displayed temporarily in the status bar.
+      a_with_timeout_flag (bool): Optional parameter that specifies whether the message should be displayed for a limited time. Defaults to True.
+      a_timeout (int): Optional parameter that specifies the amount of time (in milliseconds) the message should be displayed if a_with_timeout_flag is set to True. Defaults to the value of constants.STATUS_MESSAGE_TIMEOUT.
     """
     # <editor-fold desc="Checks">
-    if a_temporary_message is None:
-      logger.error("a_temporary_message is None.")
-      raise exception.IllegalArgumentError("a_temporary_message is None.")
-    if a_with_timeout_flag is None:
-      logger.error("a_with_timeout_flag is None.")
-      raise exception.IllegalArgumentError("a_with_timeout_flag is None.")
-    if a_timeout is None:
-      logger.error("a_timeout is None.")
-      raise exception.IllegalArgumentError("a_timeout is None.")
+    safeguard.CHECK(a_temporary_message is not None)
+    safeguard.CHECK(a_with_timeout_flag is not None)
+    safeguard.CHECK(a_timeout is not None)
     # </editor-fold>
     self._style_status_bar_for_normal_message()
     self._permanent_message.setText("")
@@ -260,19 +217,12 @@ class StatusBarManager:
     """Updates the progress bar with the given message and value.
 
     Args:
-        a_message_value_tuple (tuple): A tuple containing the message and value to be displayed on the progress bar. The message should be a string, and the value should be an integer between 0 and 100 (inclusive).
-
-    Raises:
-        exception.IllegalArgumentError: If `a_message_value_tuple` is None.
-        ValueError: If the value is less than 0 or greater than 100.
+      a_message_value_tuple (tuple): A tuple containing the message and value to be displayed on the progress bar. The message should be a string, and the value should be an integer between 0 and 100 (inclusive).
     """
     # <editor-fold desc="Checks">
-    if a_message_value_tuple is None:
-      logger.error("a_message_value_tuple is None.")
-      raise exception.IllegalArgumentError("a_message_value_tuple is None.")
+    safeguard.CHECK(a_message_value_tuple is not None)
     tmp_message, tmp_value = a_message_value_tuple
-    if tmp_value < 0 or tmp_value > 100:
-      raise ValueError("Value for progress bar must be between 0 and 100!")
+    safeguard.CHECK(tmp_value < 0 or tmp_value > 100)
     # </editor-fold>
     self._progress_bar.show()
     self._progress_bar.setFormat(f"{tmp_value}%")

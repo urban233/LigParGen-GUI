@@ -22,4 +22,5 @@ class TestFrame(QtWidgets.QMainWindow):
     self.ui.btn_test.clicked.connect(self.start_server)
 
   def start_server(self) -> None:
+    """Starts the server.py in the WSL2."""
     subprocess.run(["wsl", "-d", model_definitions.ModelDefinitions.DISTRO_NAME, "-u", "alma_ligpargen", "/home/alma_ligpargen/ligpargen_gui/wsl2/start_server.sh"])

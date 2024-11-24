@@ -1,10 +1,11 @@
+"""Module for the CompareController class."""
 import logging
 from typing import TYPE_CHECKING
 from PyQt6 import QtWidgets
 from PyQt6 import QtCore
 from ligpargen_gui.gui.base_classes import base_controller
 from ligpargen_gui.gui.util import gui_util
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -27,15 +28,10 @@ class CompareController(base_controller.BaseController):
     """Constructor.
     
     Args:
-      a_dialog: a dialog instance to be managed by the controller
-
-    Raises:
-      exception.NoneValueError: If `a_dialog` is None.
+      a_dialog: A dialog instance to be managed by the controller
     """
     # <editor-fold desc="Checks">
-    if a_dialog is None:
-      default_logging.append_to_log_file(logger, "a_dialog is None.", logging.ERROR)
-      raise exception.NoneValueError("a_dialog is None.")
+    safeguard.CHECK(a_dialog is not None)
     # </editor-fold>
     super().__init__()
     # <editor-fold desc="Instance attributes">

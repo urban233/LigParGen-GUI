@@ -2,12 +2,16 @@
 from PyQt6 import QtWidgets
 from PyQt6 import QtCore
 
+from ligpargen_gui.model.util import safeguard
+
 
 class PermanentMessageLabel(QtWidgets.QLabel):
   """A custom label widget that can send a signal if the text changes."""
 
+  # <editor-fold desc="Class attributes">
   textChanged = QtCore.pyqtSignal(str)
   """A signal indicating that the text changed."""
+  # </editor-fold>
 
   def __init__(self, parent=None) -> None:  # noqa: ANN001
     """Constructor."""
@@ -17,8 +21,11 @@ class PermanentMessageLabel(QtWidgets.QLabel):
     """Overrides the setText method of the QLabel class.
 
     Args:
-        text (str): The text to set.
+      text (str): The text to set.
     """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(text is not None)
+    # </editor-fold>
     super().setText(text)
     self.textChanged.emit(text)
 
@@ -46,7 +53,16 @@ class ErrorMessageLabel(QtWidgets.QLabel):
     self.tooltip_timer.timeout.connect(self.hide)
 
   def show_message(self, a_position: QtCore.QPoint, a_message):
-    """Shows the message."""
+    """Shows the message.
+
+    Args:
+      a_position: A point where the message should be shown.
+      a_message: The message to show.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(a_position is not None)
+    safeguard.CHECK(a_message is not None)
+    # </editor-fold>
     self.setText(a_message)
     self.adjustSize()  # Adjust the size to fit the message
     #self.move(a_line_edit.geometry().x() + 75, a_line_edit.geometry().y())

@@ -3,7 +3,7 @@ import threading
 from typing import Union
 
 from PyQt6 import QtWidgets, QtCore
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -38,24 +38,17 @@ def open_choose_folder_q_dialog(
 
   Raises:
     exception.NotMainThreadError: If function is called not from the main thread.
-    exception.NoneValueError: If any of the arguments are None.
-    exception.IllegalArgumentError: If `a_q_file_dialog_caption` is an empty string.
+
+  Returns:
+    A tuple containing the boolean True (or False if an exception was caught) if the dialog is opened and the filepath as string
   """
   # <editor-fold desc="Checks">
   if not is_main_thread():
     raise exception.NotMainThreadError()
-  if a_parent is None:
-    default_logging.append_to_log_file(logger, "a_parent is None.", logging.ERROR)
-    raise exception.NoneValueError("a_parent is None.")
-  if a_line_edit is None:
-    default_logging.append_to_log_file(logger, "a_line_edit is None.", logging.ERROR)
-    raise exception.NoneValueError("a_line_edit is None.")
-  if a_q_file_dialog_caption is None:
-    default_logging.append_to_log_file(logger, "a_q_file_dialog_caption is None.", logging.ERROR)
-    raise exception.NoneValueError("a_q_file_dialog_caption is None.")
-  if a_q_file_dialog_caption == "":
-    default_logging.append_to_log_file(logger, "a_q_file_dialog_caption is an empty string.", logging.ERROR)
-    raise exception.IllegalArgumentError("a_q_file_dialog_caption is an empty string.")
+  safeguard.CHECK(a_parent is not None)
+  safeguard.CHECK(a_line_edit is not None)
+  safeguard.CHECK(a_q_file_dialog_caption is not None)
+  safeguard.CHECK(a_q_file_dialog_caption != "")
   # </editor-fold>
   try:
     file_name = QtWidgets.QFileDialog.getExistingDirectory(
@@ -63,6 +56,7 @@ def open_choose_folder_q_dialog(
       a_q_file_dialog_caption,
       QtCore.QDir.homePath(),
     )
+    # TODO: This needs to be better handled!
     if file_name == "":
       # a_status_label.setText("No folder has been selected.")
       pass
@@ -88,27 +82,22 @@ def open_choose_file_q_dialog(
     a_parent: Either a QDialog or a QMainWindow.
     a_line_edit: The line edit.
     a_q_file_dialog_caption: The caption of the QFileDialog.
+    a_file_extension_filter: The extension to filter for.
 
   Raises:
     exception.NotMainThreadError: If function is called not from the main thread.
-    exception.NoneValueError: If any of the arguments are None.
-    exception.IllegalArgumentError: If `a_q_file_dialog_caption` is an empty string.
+
+  Returns:
+    A tuple containing the boolean True (or False if an exception was caught) if the dialog is opened and the filepath as string
   """
   # <editor-fold desc="Checks">
   if not is_main_thread():
     raise exception.NotMainThreadError()
-  if a_parent is None:
-    default_logging.append_to_log_file(logger, "a_parent is None.", logging.ERROR)
-    raise exception.NoneValueError("a_parent is None.")
-  if a_line_edit is None:
-    default_logging.append_to_log_file(logger, "a_line_edit is None.", logging.ERROR)
-    raise exception.NoneValueError("a_line_edit is None.")
-  if a_q_file_dialog_caption is None:
-    default_logging.append_to_log_file(logger, "a_q_file_dialog_caption is None.", logging.ERROR)
-    raise exception.NoneValueError("a_q_file_dialog_caption is None.")
-  if a_q_file_dialog_caption == "":
-    default_logging.append_to_log_file(logger, "a_q_file_dialog_caption is an empty string.", logging.ERROR)
-    raise exception.IllegalArgumentError("a_q_file_dialog_caption is an empty string.")
+  safeguard.CHECK(a_parent is not None)
+  safeguard.CHECK(a_line_edit is not None)
+  safeguard.CHECK(a_q_file_dialog_caption is not None)
+  safeguard.CHECK(a_q_file_dialog_caption != "")
+  safeguard.CHECK(a_file_extension_filter is not None)
   # </editor-fold>
   try:
     file_name = QtWidgets.QFileDialog.getOpenFileName(

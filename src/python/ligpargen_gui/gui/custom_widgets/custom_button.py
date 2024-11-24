@@ -1,10 +1,8 @@
 import logging
-from typing import Callable, Optional
 from PyQt6 import QtWidgets, QtGui, QtCore
 from PyQt6.QtGui import QPixmap
-from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import icons
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -28,24 +26,14 @@ class DropDownButton(QtWidgets.QPushButton):
       a_date_modified: The date the project was last modified
       a_callable: The function to use after the button was clicked.
 
-    Raises:
-      exception.NoneValueError: If any of the arguments are None.
-      exception.IllegalArgumentError: If `a_button_text` is an empty string.
-
     Notes:
       IMPORTANT: If the button is clicked the `a_callable` function will
       receive a tuple containing the project name and the date modified.
     """
     # <editor-fold desc="Checks">
-    if a_button_text is None:
-      default_logging.append_to_log_file(logger, "a_button_text is None.", logging.ERROR)
-      raise exception.NoneValueError("a_button_text is None.")
-    if a_button_text == "":
-      default_logging.append_to_log_file(logger, "a_button_text is an empty string.", logging.ERROR)
-      raise exception.IllegalArgumentError("a_button_text is an empty string.")
-    if a_menu is None:
-      default_logging.append_to_log_file(logger, "a_menu is None.", logging.ERROR)
-      raise exception.NoneValueError("a_menu is None.")
+    safeguard.CHECK(a_button_text is not None)
+    safeguard.CHECK(a_button_text != "")
+    safeguard.CHECK(a_menu is not None)
     # </editor-fold>
     super().__init__()
     self.menu = a_menu
@@ -119,17 +107,10 @@ class DropDownButton(QtWidgets.QPushButton):
     Args:
       a_drop_down_button: The button that should be colored.
       a_check_state: The check state of the QAction that is part of the QMenu which is displayed under the button.
-
-    Raises:
-      exception.NoneValueError: If any of the arguments are None.
     """
     # <editor-fold desc="Checks">
-    if a_drop_down_button is None:
-      default_logging.append_to_log_file(logger, "a_drop_down_button is None.", logging.ERROR)
-      raise exception.NoneValueError("a_drop_down_button is None.")
-    if a_check_state is None:
-      default_logging.append_to_log_file(logger, "a_check_state is None.", logging.ERROR)
-      raise exception.NoneValueError("a_check_state is None.")
+    safeguard.CHECK(a_drop_down_button is not None)
+    safeguard.CHECK(a_check_state is not None)
     # </editor-fold>
     any_checked = any(action.isChecked() for action in a_drop_down_button.menu.actions())
     if any_checked:
@@ -200,14 +181,9 @@ class PersistentQMenu(QtWidgets.QMenu):
 
     Args:
       event: An event that is sent if the mouse is released.
-
-    Raises:
-      exception.NoneValueError: If `event` is None.
     """
     # <editor-fold desc="Checks">
-    if event is None:
-      default_logging.append_to_log_file(logger, "event is None.", logging.ERROR)
-      raise exception.NoneValueError("event is None.")
+    safeguard.CHECK(event is not None)
     # </editor-fold>
     action = self.actionAt(event.pos())
     if action and action.isCheckable():

@@ -5,7 +5,7 @@ import pathlib
 from ligpargen_gui.model.data_classes import ligpargen_options
 from ligpargen_gui.model.jobs.job_input import JobInput
 from ligpargen_gui.model.preference import model_definitions
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -28,30 +28,14 @@ class LigParGenJobInput(JobInput):
       an_output_folder: Path to the output folder.
       the_options: Option for the job (-c, -o, -cgen).
       the_result_file_types: File types for the job.
-
-    Raises:
-      exception.NoneValueError: If any of the arguments are None.
-      exception.IllegalArgumentError: If `the_input_folder` does not exist or `the_result_file_types` is an empty list.
     """
     # <editor-fold desc="Checks">
-    if an_input_folder is None:
-      default_logging.append_to_log_file(logger, "an_input_folder is None.", logging.ERROR)
-      raise exception.NoneValueError("an_input_folder is None.")
-    if not an_input_folder.exists():
-      default_logging.append_to_log_file(logger, "an_input_folder does not exist.", logging.ERROR)
-      raise exception.IllegalArgumentError("an_input_folder does not exist.")
-    if an_output_folder is None:
-      default_logging.append_to_log_file(logger, "an_output_folder is None.", logging.ERROR)
-      raise exception.NoneValueError("an_output_folder is None.")
-    if the_options is None:
-      default_logging.append_to_log_file(logger, "the_options is None.", logging.ERROR)
-      raise exception.NoneValueError("the_options is None.")
-    if the_result_file_types is None:
-      default_logging.append_to_log_file(logger, "the_result_file_types is None.", logging.ERROR)
-      raise exception.NoneValueError("the_result_file_types is None.")
-    if len(the_result_file_types) == 0:
-      default_logging.append_to_log_file(logger, "the_result_file_types is an empty list.", logging.ERROR)
-      raise exception.IllegalArgumentError("the_result_file_types is an empty list.")
+    safeguard.CHECK(an_input_folder is not None)
+    safeguard.CHECK(an_input_folder.exists())
+    safeguard.CHECK(an_output_folder is not None)
+    safeguard.CHECK(the_options is not None)
+    safeguard.CHECK(the_result_file_types is not None)
+    safeguard.CHECK(len(the_result_file_types) > 0)
     # </editor-fold>
     super().__init__(a_job_type=model_definitions.JopTypes.RUN_LIGPARGEN)
     # <editor-fold desc="Instance attributes">
@@ -65,8 +49,12 @@ class LigParGenJobInput(JobInput):
     """Contains all selected result file types."""
     # </editor-fold>
 
-  def get_obj_as_dict(self):
-    """Gets all instance attributes as dict."""
+  def get_obj_as_dict(self) -> dict:
+    """Gets all instance attributes as dict.
+
+    Returns:
+      A dict containing all instance attributes
+    """
     return {
       "input_folder": str(self.input_folder),
       "output_folder": str(self.output_folder),

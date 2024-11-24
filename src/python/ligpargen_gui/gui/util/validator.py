@@ -2,7 +2,7 @@ import pathlib
 
 from ligpargen_gui.gui.util import gui_util
 from ligpargen_gui.model.custom_logging import default_logging
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 
 logger = default_logging.setup_logger(__file__)
 
@@ -11,22 +11,19 @@ def validate_path(the_current_entered_text: str) -> tuple[bool, str, str]:
   """Validates the input for a valid path.
 
   Args:
-      the_current_entered_text (str): The text entered for the sequence name.
+    the_current_entered_text (str): The text entered for the sequence name.
 
   Returns:
-      A tuple containing a boolean indicating whether the input is valid and a string representing
-      an error message if applicable and a stylesheet for a line edit.
+    A tuple containing a boolean indicating whether the input is valid and a string representing
+    an error message if applicable and a stylesheet for a line edit.
 
   Raises:
-      exception.IllegalArgumentError: If either `the_current_entered_text` or `the_current_sequences` is None.
-      exception.NotMainThreadError: If function is called not from the main thread.
+    exception.NotMainThreadError: If function is called not from the main thread.
   """
   # <editor-fold desc="Checks">
   if not gui_util.is_main_thread():
     raise exception.NotMainThreadError()
-  if the_current_entered_text is None:
-    logger.error('the_current_entered_text is None.')
-    raise exception.IllegalArgumentError('the_current_entered_text is None.')
+  safeguard.CHECK(the_current_entered_text is not None)
   # </editor-fold>
   allowed_chars = {
     '0',
@@ -97,7 +94,7 @@ def validate_path(the_current_entered_text: str) -> tuple[bool, str, str]:
     ':',
     '.',
     ' '
-  }
+  }  # TODO: There should exist a more elegant way to do this!
   for char in the_current_entered_text:
     if char not in allowed_chars:
       return False, 'Invalid character!', """QLineEdit {color: #ba1a1a; border-color: #ba1a1a;}"""
@@ -108,13 +105,18 @@ def validate_path(the_current_entered_text: str) -> tuple[bool, str, str]:
   return True, '', """QLineEdit {color: #000000; border-color: #DCDBE3;}"""
 
 
-def validate_timeout(text) -> tuple[bool, str]:
+def validate_timeout(text: str) -> tuple[bool, str]:
   """Validates the input for x-axis units.
 
   Args:
-      text: The input text to be validated.
+    text: The input text to be validated.
+
+  Returns:
+    A tuple consisting of a boolean flag (if the input is valid or not) and the 'fixed' text.
   """
-  print(text)
+  # <editor-fold desc="Checks">
+  safeguard.CHECK(text is not None)
+  # </editor-fold>
   allowed_chars = set("0123456789")
   new_text = "".join(char for char in text if char in allowed_chars)
   if new_text == "":

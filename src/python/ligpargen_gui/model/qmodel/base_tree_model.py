@@ -5,7 +5,7 @@ from PyQt6 import QtGui
 from PyQt6 import QtCore
 
 from ligpargen_gui.model.preference import model_definitions
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -29,7 +29,11 @@ class BaseTreeModel(QtGui.QStandardItemModel):
     self.root_node = self.invisibleRootItem()
 
   def is_empty(self) -> bool:
-    """Checks if the model is empty."""
+    """Checks if the model is empty.
+
+    Returns:
+      True if the row count is 0, Otherwise: False.
+    """
     return True if self.rowCount() == 0 else False
 
   def add_node(
@@ -47,26 +51,15 @@ class BaseTreeModel(QtGui.QStandardItemModel):
       an_item_type_value: A value for the "type" role of the new node.
       an_item_object_value: A value for the "object" role of the new node.
 
-    Raises:
-      exception.NoneValueError: If any of the arguments are None.
-      exception.IllegalArgumentError: If `an_item_name` is an empty string.
+    Returns:
+      A QStandardItem that contains all given information.
     """
     # <editor-fold desc="Checks">
-    if a_parent_node is None:
-      default_logging.append_to_log_file(logger, "a_parent_node is None.", logging.ERROR)
-      raise exception.NoneValueError("a_parent_node is None.")
-    if an_item_name is None:
-      default_logging.append_to_log_file(logger, "an_item_name is None.", logging.ERROR)
-      raise exception.NoneValueError("an_item_name is None.")
-    if an_item_name == "":
-      default_logging.append_to_log_file(logger, "an_item_name is an empty string.", logging.ERROR)
-      raise exception.IllegalArgumentError("an_item_name is an empty string.")
-    if an_item_type_value is None:
-      default_logging.append_to_log_file(logger, "an_item_type_value is None.", logging.ERROR)
-      raise exception.NoneValueError("an_item_type_value is None.")
-    if an_item_object_value is None:
-      default_logging.append_to_log_file(logger, "an_item_object_value is None.", logging.ERROR)
-      raise exception.NoneValueError("an_item_object_value is None.")
+    safeguard.CHECK(a_parent_node is not None)
+    safeguard.CHECK(an_item_name is not None)
+    safeguard.CHECK(an_item_name != "")
+    safeguard.CHECK(an_item_type_value is not None)
+    safeguard.CHECK(an_item_object_value is not None)
     # </editor-fold>
     tmp_item = QtGui.QStandardItem(an_item_name)
     if an_item_object_value is not None:
@@ -80,15 +73,9 @@ class BaseTreeModel(QtGui.QStandardItemModel):
 
     Args:
       a_model_index: The index of the item to be removed.
-
-    Raises:
-      exception.NoneValueError: If `a_model_index` is None.
-
     """
     # <editor-fold desc="Checks">
-    if a_model_index is None:
-      default_logging.append_to_log_file(logger, "a_model_index is None.", logging.ERROR)
-      raise exception.NoneValueError("a_model_index is None.")
+    safeguard.CHECK(a_model_index is not None)
     # </editor-fold>
     tmp_item = self.itemFromIndex(a_model_index)
     self.removeRow(tmp_item.row())
@@ -100,24 +87,23 @@ class BaseTreeModel(QtGui.QStandardItemModel):
       a_row: The row to get the index for
       a_parent: The parent index to set the row in context (Default: None)
 
-    Raises:
-      exception.NoneValueError: If `a_row` is None.
-      exception.IllegalArgumentError: If `a_row` has a value less than zero.
+    Returns:
+      A QModelIndex that contains the given row and optionally parent index.
     """
     # <editor-fold desc="Checks">
-    if a_row is None:
-      default_logging.append_to_log_file(logger, "a_row is None.", logging.ERROR)
-      raise exception.NoneValueError("a_row is None.")
-    if a_row < 0:
-      default_logging.append_to_log_file(logger, "a_row has a value less than zero.")
-      raise exception.IllegalArgumentError("a_row has a value less than zero")
+    safeguard.CHECK(a_row is not None)
+    safeguard.CHECK(a_row > 0)
     # </editor-fold>
     if a_parent is None:
       return self.index(a_row, 0)
     return self.index(a_row, 0, a_parent)
 
   def get_root_node_as_index(self) -> QtCore.QModelIndex:
-    """Returns the root node as a QModelIndex."""
+    """Returns the root node as a QModelIndex.
+
+    Returns:
+      A QModelIndex that contains the root node.
+    """
     return self.indexFromItem(self.root_node)
 
   def get_display_data_of_index(self, an_index: QtCore.QModelIndex) -> str:
@@ -126,14 +112,11 @@ class BaseTreeModel(QtGui.QStandardItemModel):
     Args:
       an_index: The index to get the type of
 
-    Raises:
-      exception.NoneValueError: If `an_index` is None.
-
+    Returns:
+      The display role as string of the given index.
     """
     # <editor-fold desc="Checks">
-    if an_index is None:
-      default_logging.append_to_log_file(logger, "an_index is None.", logging.ERROR)
-      raise exception.NoneValueError("an_index is None.")
+    safeguard.CHECK(an_index is not None)
     # </editor-fold>
     return an_index.data(QtCore.Qt.ItemDataRole.DisplayRole)
 
@@ -143,14 +126,11 @@ class BaseTreeModel(QtGui.QStandardItemModel):
     Args:
       an_index: The index to get the type of
 
-    Raises:
-      exception.NoneValueError: If `an_index` is None.
-
+    Returns:
+      The type role as string of the given index.
     """
     # <editor-fold desc="Checks">
-    if an_index is None:
-      default_logging.append_to_log_file(logger, "an_index is None.", logging.ERROR)
-      raise exception.NoneValueError("an_index is None.")
+    safeguard.CHECK(an_index is not None)
     # </editor-fold>
     return an_index.data(model_definitions.RolesEnum.TYPE_ROLE)
 
@@ -160,14 +140,11 @@ class BaseTreeModel(QtGui.QStandardItemModel):
     Args:
       an_index: The index to get the object of
 
-    Raises:
-      exception.NoneValueError: If `an_index` is None.
-
+    Returns:
+      The saved data object of the given index.
     """
     # <editor-fold desc="Checks">
-    if an_index is None:
-      default_logging.append_to_log_file(logger, "an_index is None.", logging.ERROR)
-      raise exception.NoneValueError("an_index is None.")
+    safeguard.CHECK(an_index is not None)
     # </editor-fold>
     return an_index.data(model_definitions.RolesEnum.OBJECT_ROLE)
 
@@ -176,6 +153,9 @@ class BaseTreeModel(QtGui.QStandardItemModel):
 
     Args:
       an_index: The index of which the children rows should be used (Default: None)
+
+    Returns:
+      A range iterator of the row count.
     """
     if an_index is None:
       return range(self.rowCount())

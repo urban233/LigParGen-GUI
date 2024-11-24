@@ -94,9 +94,3 @@ if __name__ == "__main__":
   tmp_hash_map.insert("test", 11)
   tmp_hash_map.insert("test2", 12)
   tmp_hash_map.keys()
-
-  # print(tmp_hash_map.size)
-  # print(tmp_hash_map)
-  # print(tmp_hash_map.get("test2"))
-  # tmp_hash_map.remove("test")
-  # print(tmp_hash_map)

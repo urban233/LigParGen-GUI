@@ -5,7 +5,7 @@ from ligpargen_gui.gui.custom_widgets import accordion, custom_button, custom_la
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import icons
 from ligpargen_gui.gui.main.forms.auto import auto_main_frame
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -184,7 +184,6 @@ class MainFrame(QtWidgets.QMainWindow):
     self.container_results_all.addWidget(self.lbl_select_all)
     self.container_results_all.addStretch()
     self.container_results_all.addWidget(self.tg_select_all)
-    self.container_results_layout.addWidget(self.lbl_output_files)
     self.container_results_layout_first_row = QtWidgets.QHBoxLayout()
     self.container_results_layout_second_row = QtWidgets.QHBoxLayout()
     self.container_results_layout_third_row = QtWidgets.QHBoxLayout()
@@ -410,6 +409,7 @@ class MainFrame(QtWidgets.QMainWindow):
     # </editor-fold>
 
     self.container_results_layout.addLayout(self.container_results_all)
+    self.container_results_layout.addWidget(self.lbl_output_files)
     self.container_results_layout.addLayout(self.container_results_layout_first_row)
     self.container_results_layout.addLayout(self.container_results_layout_second_row)
     self.container_results_layout.addLayout(self.container_results_layout_third_row)
@@ -557,7 +557,11 @@ class MainFrame(QtWidgets.QMainWindow):
       action.setChecked(False)
 
   def get_toggled_result_types(self) -> list:
-    """Gets all result types that are toggled."""
+    """Gets all result types that are toggled.
+
+    Returns:
+      A list of checked result types.
+    """
     tmp_result_types: list = []
     if self.action_apbs_pqr.isChecked():
       tmp_result_types.append(model_definitions.LigParGenResultFileTypes.APBS_PQR)
@@ -601,15 +605,10 @@ class MainFrame(QtWidgets.QMainWindow):
     """Overrides the closeEvent of the QMainWindow class.
 
     Args:
-        event: The event object representing the close event.
-
-    Raises:
-      exception.NoneValueError: If `event` is None.
+      event: The event object representing the close event.
     """
     # <editor-fold desc="Checks">
-    if event is None:
-      default_logging.append_to_log_file(logger, "event is None.", logging.ERROR)
-      raise exception.NoneValueError("event is None.")
+    safeguard.CHECK(event is not None)
     # </editor-fold>
     # Emit the custom signal when the window is closed
     self.dialogClosed.emit(("", event))
@@ -623,13 +622,12 @@ class MainFrame(QtWidgets.QMainWindow):
     self.cbox_charge_model.setFixedWidth(95)
     self.cbox_molecule_charge.setFixedWidth(95)
 
-  def add_error_message_labels(self):
+  def add_error_message_labels(self) -> None:
+    """Adds the error message label to the main frame."""
     # Calculate tooltip position just above the QLineEdit
     tooltip_x = self.txt_structure_input.geometry().x() + 120
     tooltip_y = self.txt_structure_input.geometry().y()
-    print(tooltip_x)
     # Convert back to main window's coordinate system
-    # tooltip_pos = self.mapFromGlobal(QtCore.QPoint(tooltip_x, tooltip_y))
     self.lbl_error_message = custom_label.ErrorMessageLabel(QtCore.QPoint(tooltip_x, tooltip_y), self)
 
   # </editor-fold>

@@ -4,7 +4,7 @@ from PyQt6 import QtWidgets
 from PyQt6 import QtCore
 from ligpargen_gui.gui.base_classes import base_controller
 from ligpargen_gui.gui.util import gui_util, validator
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -27,15 +27,10 @@ class InstallBossController(base_controller.BaseController):
     """Constructor.
     
     Args:
-      a_dialog: a dialog instance to be managed by the controller
-
-    Raises:
-      exception.NoneValueError: If `a_dialog` is None.
+      a_dialog: A dialog instance to be managed by the controller
     """
     # <editor-fold desc="Checks">
-    if a_dialog is None:
-      default_logging.append_to_log_file(logger, "a_dialog is None.", logging.ERROR)
-      raise exception.NoneValueError("a_dialog is None.")
+    safeguard.CHECK(a_dialog is not None)
     # </editor-fold>
     super().__init__()
     # <editor-fold desc="Instance attributes">
@@ -69,26 +64,33 @@ class InstallBossController(base_controller.BaseController):
     """Sets the was_canceled flag to true."""
     self.was_canceled = True
 
-  def set_slot_method_for_ok_button(self, a_callable: Callable):
-    """Sets a custom function as the slot method for the ok button."""
+  def set_slot_method_for_ok_button(self, a_callable: Callable) -> None:
+    """Sets a custom function as the slot method for the ok button.
+
+    Args:
+      a_callable: Function to connect with the clicked signal of the OK button.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(a_callable is not None)
+    # </editor-fold>
     self._dialog.btn_ok.clicked.disconnect()
     self._dialog.btn_ok.clicked.connect(a_callable)
 
-  def close_complete_app(self):
+  def close_complete_app(self) -> None:
     """Closes the entire app."""
     if self.boss_is_installed:
       self.get_dialog().close()
     else:
       exit(0)
 
-  def disable_all_input_widgets(self):
+  def disable_all_input_widgets(self) -> None:
     """Disables all input widgets."""
     self._dialog.txt_boss_tar_gz_path.setEnabled(False)
     self._dialog.btn_boss_tar_gz_path.setEnabled(False)
     self._dialog.btn_ok.setEnabled(False)
     self._dialog.btn_cancel.setEnabled(False)
 
-  def enable_all_input_widgets(self):
+  def enable_all_input_widgets(self) -> None:
     """Enables all input widgets."""
     self._dialog.txt_boss_tar_gz_path.clear()
     self._dialog.txt_boss_tar_gz_path.setEnabled(False)

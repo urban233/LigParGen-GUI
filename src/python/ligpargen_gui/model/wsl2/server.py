@@ -7,15 +7,16 @@ import subprocess
 
 import zmq
 from wsl2 import constants, utils
-from wsl2 import post_processing
+from wsl2 import post_processing, safeguard
 from wsl2 import default_logging, exception
 
 logger = default_logging.setup_logger(__file__)
 
 
 class Server:
-  def __init__(self):
-    # Socket definitions
+  """Class for communicating the client in Windows."""
+  def __init__(self) -> None:
+    """Constructor."""
     context = zmq.Context()
     self._recv_socket = context.socket(zmq.PULL)
     self._recv_socket.bind("tcp://127.0.0.1:8033")
@@ -24,6 +25,11 @@ class Server:
     self.job_input_data: dict = {}
 
   def listen_for_job_input(self) -> bool:
+    """Listens for any new job input.
+
+    Returns:
+      True if the process was successful, Otherwise: False.
+    """
     try:
       tmp_utils = utils.Utils()
       self.job_input_data: dict = json.loads(self._recv_socket.recv_json())
@@ -41,7 +47,11 @@ class Server:
       return False
 
   def run_job(self) -> bool:
-    """Runs job based on job type."""
+    """Runs job based on job type.
+
+    Returns:
+      True if the process was successful, Otherwise: False.
+    """
     try:
       if self.job_input_data[constants.JobInputDataKeys.JOB_TYPE] == constants.JobTypes.INSTALL_BOSS:
         default_logging.append_to_log_file(logger, "Job type: INSTALL BOSS", logging.INFO)
@@ -66,7 +76,11 @@ class Server:
       return False
 
   def run_install_boss_job(self) -> bool:
-    """Runs the 'install boss' job."""
+    """Runs the 'install boss' job.
+
+    Returns:
+      True if the process was successful, Otherwise: False.
+    """
     try:
       tmp_utils = utils.Utils()
       pathlib.Path("/home/alma_ligpargen/BOSS_FILES").mkdir(exist_ok=True)
@@ -137,6 +151,11 @@ class Server:
       return False
 
   def run_ligpargen_job(self) -> bool:
+    """Runs the 'ligpargen' job.
+
+    Returns:
+      True if the process was successful, Otherwise: False.
+    """
     try:
       # <editor-fold desc="Preparations">
       default_logging.append_to_log_file(logger, "Preparing environment ...", logging.INFO)
@@ -237,6 +256,18 @@ class Server:
       return False
 
   def run_ligpargen_command(self, a_file: pathlib.Path) -> bool:
+    """Runs a single ligpargen command for a pdb file.
+
+    Args:
+      a_file: The pdb file to convert with ligpargen.
+
+    Returns:
+      True if the process was successful, Otherwise: False.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.ENSURE(a_file is not None)
+    safeguard.ENSURE(a_file.exists())
+    # </editor-fold>
     try:
       tmp_complete_process = subprocess.run(
         ["bash", str(constants.Paths.LIGPARGEN_BATCH_FILEPATH),
@@ -261,6 +292,18 @@ class Server:
       return False
 
   def run_ligpargen_command_with_smiles(self, a_smiles: str) -> bool:
+    """Runs a single ligpargen command for an SMILES input.
+
+    Args:
+      a_smiles: SMILES string.
+
+    Returns:
+      True if the process was successful, Otherwise: False.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.ENSURE(a_smiles is not None)
+    safeguard.ENSURE(a_smiles != "")
+    # </editor-fold>
     try:
       tmp_complete_process = subprocess.run(
         ["bash", str(constants.Paths.LIGPARGEN_BATCH_FILEPATH),
@@ -285,6 +328,15 @@ class Server:
       return False
 
   def send_finished_signal(self, a_msg: str, has_failed: bool = False) -> bool:
+    """Sends the finished signal.
+
+    Returns:
+      True if the process was successful, Otherwise: False.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.ENSURE(a_msg is not None)
+    safeguard.ENSURE(has_failed is not None)
+    # </editor-fold>
     try:
       if has_failed:
         tmp_status = "failed"
@@ -303,6 +355,19 @@ class Server:
       return False
 
   def send_progress(self, a_msg: str, a_progress: tuple) -> bool:
+    """Sends a progress report signal.
+
+    Args:
+      a_msg: A message that describes the progress.
+      a_progress: A tuple containing the finished molecules and total molecules.
+
+    Returns:
+      True if the process was successful, Otherwise: False.
+    """
+    # <editor-fold desc="Checks">
+    safeguard.ENSURE(a_msg is not None)
+    safeguard.ENSURE(a_progress is not None)
+    # </editor-fold>
     try:
       self._sender_socket.send_json(
         json.dumps({

@@ -2,7 +2,7 @@ import logging
 import pathlib
 import re
 
-from wsl2 import default_logging, exception
+from wsl2 import default_logging, exception, safeguard
 
 logger = default_logging.setup_logger(__file__)
 
@@ -12,18 +12,10 @@ def post_process_tinker_xyz_file(a_filepath: pathlib.Path) -> bool:
 
   Args:
     a_filepath: The filepath of the TINKER XYZ file.
-
-  Raises:
-    exception.NoneValueError: If `a_filepath` is None.
-    exception.IllegalArgumentError: If `a_filepath` does not exist.
   """
   # <editor-fold desc="Checks">
-  if a_filepath is None:
-    default_logging.append_to_log_file(logger, "a_filepath is None.", logging.ERROR)
-    raise exception.NoneValueError("a_filepath is None.")
-  if a_filepath == "":
-    default_logging.append_to_log_file(logger, "a_filepath does not exist.", logging.ERROR)
-    raise exception.IllegalArgumentError("a_filepath does not exist.")
+  safeguard.ENSURE(a_filepath is not None)
+  safeguard.ENSURE(a_filepath.exists())
   # </editor-fold>
   try:
     with open(a_filepath, 'r') as file:

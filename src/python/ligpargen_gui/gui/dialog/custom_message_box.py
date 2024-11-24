@@ -8,7 +8,7 @@ from PyQt6 import QtWidgets
 
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import styles_utils
-from ligpargen_gui.model.util import exception
+from ligpargen_gui.model.util import exception, safeguard
 from ligpargen_gui.model.custom_logging import default_logging
 
 logger = default_logging.setup_logger(__file__)
@@ -18,7 +18,6 @@ __docformat__ = "google"
 
 class CustomMessageBoxIcons(enum.Enum):
   """Enumeration of custom message box icons."""
-
   INFORMATION = f"{model_definitions.ModelDefinitions.ICONS_PATH}/info_w200.svg"
   WARNING = f"{model_definitions.ModelDefinitions.ICONS_PATH}/warning_w200.svg"
   ERROR = f"{model_definitions.ModelDefinitions.ICONS_PATH}/error_w200.svg"
@@ -28,8 +27,10 @@ class CustomMessageBoxIcons(enum.Enum):
 class CustomMessageBox(QtWidgets.QDialog):
   """A custom message box that is based on a QDialog."""
 
+  # <editor-fold desc="Class attributes">
   dialogClosed = QtCore.pyqtSignal(bool)
   """A signal indicating that the dialog is closed."""
+  # </editor-fold>
 
   def __init__(self, parent=None) -> None:  # noqa: ANN001
     """Constructor."""
@@ -72,8 +73,12 @@ class CustomMessageBox(QtWidgets.QDialog):
     self.setWindowTitle("Generic Window Title")
     self.setModal(True)
 
-  def closeEvent(self, event):
-    """Overrides the closeEvent method of the QDialog class."""
+  def closeEvent(self, event) -> None:
+    """Overrides the closeEvent method of the QDialog class.
+
+    Args:
+      event: A qt event.
+    """
     # Emit the custom signal when the window is closed
     self.dialogClosed.emit(False)
     event.accept()
@@ -82,8 +87,10 @@ class CustomMessageBox(QtWidgets.QDialog):
 class CustomMessageBoxDelete(CustomMessageBox):
   """A message box that contains a delete and cancel button."""
 
+  # <editor-fold desc="Class attributes">
   response: bool
   """A boolean value indicating if the cancel button was clicked (set to False)."""
+  # </editor-fold>
 
   def __init__(
       self, a_message: str, a_window_title: str, an_icon_path: str
@@ -91,28 +98,19 @@ class CustomMessageBoxDelete(CustomMessageBox):
     """Constructor.
 
     Args:
-        a_message (str): The message to be displayed in the dialog.
-        a_window_title (str): The title of the window.
-        an_icon_path (str): The path to the icon image file.
-
-    Raises:
-        exception.IllegalArgumentError: If any of the arguments is None.
+      a_message (str): The message to be displayed in the dialog.
+      a_window_title (str): The title of the window.
+      an_icon_path (str): The path to the icon image file.
     """
     # <editor-fold desc="Checks">
-    if a_message is None:
-      logger.error("a_message is None.")
-      raise exception.IllegalArgumentError("a_message is None.")
-    if a_window_title is None:
-      logger.error("a_window_title is None.")
-      raise exception.IllegalArgumentError("a_window_title is None.")
-    if an_icon_path is None:
-      logger.error("an_icon_path is None.")
-      raise exception.IllegalArgumentError("an_icon_path is None.")
-
+    safeguard.CHECK(a_message is not None)
+    safeguard.ENSURE(a_message != "")
+    safeguard.CHECK(a_window_title is not None)
+    safeguard.ENSURE(a_window_title != "")
+    safeguard.CHECK(an_icon_path is not None)
+    safeguard.ENSURE(an_icon_path != "")
     # </editor-fold>
-
     super().__init__()
-
     self.response = False
 
     self.lbl_icon.setText("")
@@ -159,8 +157,10 @@ class CustomMessageBoxDelete(CustomMessageBox):
 class CustomMessageBoxOk(CustomMessageBox):
   """A message box that contains an ok button."""
 
+  # <editor-fold desc="Class attributes">
   response: bool
   """A boolean value indicating if the ok button was clicked (set to True)."""
+  # </editor-fold>
 
   def __init__(
       self, a_message: str, a_window_title: str, an_icon_path: str
@@ -168,28 +168,19 @@ class CustomMessageBoxOk(CustomMessageBox):
     """Constructor.
 
     Args:
-        a_message (str): The message to be displayed in the dialog.
-        a_window_title (str): The title of the window.
-        an_icon_path (str): The path to the icon image file.
-
-    Raises:
-        exception.IllegalArgumentError: If any of the arguments is None.
+      a_message (str): The message to be displayed in the dialog.
+      a_window_title (str): The title of the window.
+      an_icon_path (str): The path to the icon image file.
     """
     # <editor-fold desc="Checks">
-    if a_message is None:
-      logger.error("a_message is None.")
-      raise exception.IllegalArgumentError("a_message is None.")
-    if a_window_title is None:
-      logger.error("a_window_title is None.")
-      raise exception.IllegalArgumentError("a_window_title is None.")
-    if an_icon_path is None:
-      logger.error("an_icon_path is None.")
-      raise exception.IllegalArgumentError("an_icon_path is None.")
-
+    safeguard.CHECK(a_message is not None)
+    safeguard.ENSURE(a_message != "")
+    safeguard.CHECK(a_window_title is not None)
+    safeguard.ENSURE(a_window_title != "")
+    safeguard.CHECK(an_icon_path is not None)
+    safeguard.ENSURE(an_icon_path != "")
     # </editor-fold>
-
     super().__init__()
-
     self.response = False
 
     self.lbl_icon.setText("")
@@ -213,37 +204,30 @@ class CustomMessageBoxOk(CustomMessageBox):
 class CustomMessageBoxYesNo(CustomMessageBox):
   """A message box that contains a yes and no button."""
 
+  # <editor-fold desc="Class attributes">
   response: bool
   """A boolean value indicating if the no button was clicked (set to False)."""
+  # </editor-fold>
 
   def __init__(
       self, a_message: str, a_window_title: str, an_icon_path: str
-  ) -> None:  # noqa: ANN001
+  ) -> None:
     """Constructor.
 
     Args:
         a_message (str): The message to be displayed in the dialog.
         a_window_title (str): The title of the window.
         an_icon_path (str): The path to the icon image file.
-
-    Raises:
-        exception.IllegalArgumentError: If any of the arguments is None.
     """
     # <editor-fold desc="Checks">
-    if a_message is None:
-      logger.error("a_message is None.")
-      raise exception.IllegalArgumentError("a_message is None.")
-    if a_window_title is None:
-      logger.error("a_window_title is None.")
-      raise exception.IllegalArgumentError("a_window_title is None.")
-    if an_icon_path is None:
-      logger.error("an_icon_path is None.")
-      raise exception.IllegalArgumentError("an_icon_path is None.")
-
+    safeguard.CHECK(a_message is not None)
+    safeguard.ENSURE(a_message != "")
+    safeguard.CHECK(a_window_title is not None)
+    safeguard.ENSURE(a_window_title != "")
+    safeguard.CHECK(an_icon_path is not None)
+    safeguard.ENSURE(an_icon_path != "")
     # </editor-fold>
-
     super().__init__()
-
     self.response = False
 
     self.lbl_icon.setText("")
