@@ -60,6 +60,8 @@ class StatusBarManager:
     self._view.statusBar().addPermanentWidget(self.lbl_current_version)
     self._view.statusBar().addPermanentWidget(self.btn_new_version)
     self._progress_bar.hide()
+    self.lbl_current_version.hide()
+    self.btn_new_version.hide()
     self.temp_message_timer = QtCore.QTimer()
 
   # <editor-fold desc="Util methods">
@@ -152,7 +154,6 @@ class StatusBarManager:
     """Restores the statusbar."""
     self._style_status_bar_for_normal_message()
     self._view.statusBar().showMessage("")
-
   # </editor-fold>
 
   # <editor-fold desc="Public methods">
@@ -235,4 +236,16 @@ class StatusBarManager:
     self._progress_bar.hide()
     self._permanent_message.hide()
     self._permanent_message.setText("")
+
+  def set_update_version(self, a_version) -> None:
+    """Sets the update version in the statusbar.
+
+    Args:
+      a_version: A string representation of the version to set
+    """
+    # <editor-fold desc="Checks">
+    safeguard.CHECK(a_version is not None)
+    # </editor-fold>
+    self.lbl_current_version.setText(f"Version {a_version}")
+
   # </editor-fold>

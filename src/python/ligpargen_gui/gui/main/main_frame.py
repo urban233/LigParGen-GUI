@@ -622,6 +622,18 @@ class MainFrame(QtWidgets.QMainWindow):
     self.cbox_charge_model.setFixedWidth(95)
     self.cbox_molecule_charge.setFixedWidth(95)
 
+  def block_gui(self) -> None:
+    """Blocks the complete gui."""
+    self.btn_structure_input.setEnabled(False)
+    self.txt_structure_input.setEnabled(False)
+    if self.accordion_section_options.content.isVisible():
+      self.accordion_section_options.toggle_content()
+    self.accordion_section_options.setEnabled(False)
+    if self.accordion_section_results.content.isVisible():
+      self.accordion_section_results.toggle_content()
+    self.accordion_section_results.setEnabled(False)
+    self.btn_start_job.setEnabled(False)
+
   def add_error_message_labels(self) -> None:
     """Adds the error message label to the main frame."""
     # Calculate tooltip position just above the QLineEdit

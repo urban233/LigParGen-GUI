@@ -1,10 +1,12 @@
 import logging
+import subprocess
 
 from PyQt6 import QtCore
 from PyQt6 import QtWidgets
 from PyQt6 import QtGui
 from PyQt6.QtCore import Qt
 from ligpargen_gui.gui.base_classes import base_dialog
+from ligpargen_gui.gui.dialog import custom_message_box
 from ligpargen_gui.gui.dialog.forms.auto import auto_dialog_job_progress
 from ligpargen_gui.model.preference import model_definitions
 from ligpargen_gui.model.util.gui_style import styles_utils, icons
@@ -35,7 +37,7 @@ class DialogJobProgress(base_dialog.BaseDialog):
     self.ui.setupUi(self)
     self.setup_ui()
     self.resize(650, 370)
-    self.ui.btn_cancel.clicked.connect(self.close)
+    self.ui.btn_cancel.clicked.connect(self.cancel_job)
     self.setWindowModality(Qt.WindowModality.WindowModal)
 
   def setup_ui(self) -> None:
@@ -147,6 +149,7 @@ class DialogJobProgress(base_dialog.BaseDialog):
     self.setWindowFlags(
       self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint
     )
+    self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)
 
   def closeEvent(self, event) -> None:
     """Closes the dialog (with the closeEvent) and emits the 'dialogClosed' signal.
@@ -159,3 +162,26 @@ class DialogJobProgress(base_dialog.BaseDialog):
     # </editor-fold>
     event.accept()
     self.dialogClosed.emit()
+
+  def shutdown_wsl(self) -> None:
+    """Shuts down the WSL2 distro to cancel the running job."""
+    tmp_msg_box = custom_message_box.CustomMessageBoxYesNo(
+      "Are you sure to cancel the running job?",
+      "Abort running job",
+      custom_message_box.CustomMessageBoxIcons.WARNING.value,
+    )
+    tmp_msg_box.exec()
+    if tmp_msg_box.response:
+      # CAUTION: This is a quick-and-dirty way of canceling the job
+      # If this is used frequently in quick succession (multiple aborts within 1 min),
+      # the approach will lead to a Segmentation Fault (-1073741819 (0xC0000005)).
+      # The reason for this behaviour could be that the "TaskResult" object
+      # is not correctly handled and underlying C++ code (of Qt) could have a
+      # nullptr dereference.
+      tmp_cmd = ["wsl", "--terminate", model_definitions.ModelDefinitions.DISTRO_NAME]
+      subprocess.run(tmp_cmd)
+
+  def cancel_job(self) -> None:
+    """Cancels the job by shutting down the WSL2 distro."""
+    self.shutdown_wsl()
+    self.close()

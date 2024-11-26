@@ -202,24 +202,35 @@ class MainFrameController:
     if model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH.exists():
       model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH.unlink()
     if not url.download_file(model_definitions.ModelDefinitions.URL_TO_REMOTE_VERSION, model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH):
-      self.status_bar_manager.show_error_message("Could not check for updates!")
+      self.status_bar_manager.show_temporary_message("Could not check for updates! Please try again later.")
+      return False
     try:
       # Open and load the JSON file
       with open(model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH, 'r') as file:
         data = json.load(file)
       # Extract the latest version from the versionHistory list
-      latest_version = data["versionHistory"][0]["version"]
+      latest_version = data["versionHistory"][-1]["version"]
       current_version = model_definitions.ModelDefinitions.VERSION_NUMBER.replace("v", "")
       # Check if the latest version matches the target version
       if latest_version == current_version:
         default_logging.append_to_log_file(logger, f"The version {latest_version} matches the target version.", logging.INFO)
+        self.status_bar_manager.lbl_current_version.hide()
+        self.status_bar_manager.btn_new_version.hide()
         return False
       else:
         default_logging.append_to_log_file(logger, f"The version {latest_version} does NOT match the target version {current_version}.", logging.INFO)
+        self.status_bar_manager.lbl_current_version.show()
+        self.status_bar_manager.btn_new_version.show()
+        self.status_bar_manager.set_update_version(latest_version)
         return True
     except (json.JSONDecodeError, KeyError, IndexError) as e:
       default_logging.append_to_log_file(logger, f"Error parsing the file or accessing version: {e}", logging.ERROR)
       return True
+    except FileNotFoundError:
+      self.status_bar_manager.show_temporary_message("Could not check for updates! Please try again later.")
+      self.status_bar_manager.lbl_current_version.hide()
+      self.status_bar_manager.btn_new_version.hide()
+      return False
 
   def check_if_boss_is_installed(self) -> bool:
     """Checks if the BOSS software is installed in the WSL2 and prompts the user if not.
@@ -710,6 +721,7 @@ class MainFrameController:
             a_task_scheduler=self.task_scheduler
           )
         )
+        self.main_frame.block_gui()
     except Exception as e:
       default_logging.append_to_log_file(logger, e.__str__(), logging.ERROR)
       self.status_bar_manager.show_error_message("An error occurred.")

@@ -3,7 +3,7 @@ import requests
 from ligpargen_gui.model.util import safeguard
 
 
-def download_file(url: str, save_path) -> bool:
+def download_file(url: str, save_path, timeout=(5, 10)) -> bool:
   """Downloads a file from the given URL to the given filepath.
 
   Args:
@@ -19,7 +19,7 @@ def download_file(url: str, save_path) -> bool:
   # </editor-fold>
   try:
     # Send a GET request to the URL
-    response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True, timeout=timeout)
     response.raise_for_status()  # Check for HTTP errors
     # Write the content to a file in chunks to avoid memory issues with large files
     with open(save_path, 'wb') as file:
