@@ -46,7 +46,7 @@ class DialogAbout(QtWidgets.QDialog):
     data = [
         ["Material Design 3 Icons", "4.0.0", "Apache License 2.0"],
         ["Numpy", "2.1.2", "BSD 3-Clause 'New' or 'Revised' License"],
-        ["PyZMQ", "26.2.0", "BSD 3-Clause License"],
+        ["ZeroMQ", "26.2.0", "BSD 3-Clause License"],
         ["PyQt6", "6.7.1", "GNU General Public License (GPL)"],
     ]
 

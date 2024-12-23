@@ -37,12 +37,20 @@ class DialogJobProgress(base_dialog.BaseDialog):
     self.ui.setupUi(self)
     self.setup_ui()
     self.resize(650, 370)
-    self.ui.btn_cancel.clicked.connect(self.cancel_job)
+    """self.ui.btn_cancel.hide()
+    The cancel button is hidden otherwise a cancel mechanism would be needed.
+    A cancel mechanism implementation is very difficult and only with high effort possible.
+    In addition, the jobs are rather quickly finished and therefore a cancel mechanism is omitted.
+    """
+    self.ui.btn_cancel.hide()
     self.setWindowModality(Qt.WindowModality.WindowModal)
 
   def setup_ui(self) -> None:
     """Sets up the initial ui."""
-    self.ui.list_view_progress.setEnabled(False)
+    #self.ui.list_view_progress.setEnabled(False)
+    self.ui.list_view_progress.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+    self.ui.list_view_progress.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+    self.ui.list_view_progress.setSelectionMode(self.ui.list_view_progress.SelectionMode.NoSelection)
     self.ui.prog_bar.setValue(0)
     self.ui.btn_ok.setEnabled(False)
     self.ui.list_view_progress.setStyleSheet("""
@@ -162,26 +170,3 @@ class DialogJobProgress(base_dialog.BaseDialog):
     # </editor-fold>
     event.accept()
     self.dialogClosed.emit()
-
-  def shutdown_wsl(self) -> None:
-    """Shuts down the WSL2 distro to cancel the running job."""
-    tmp_msg_box = custom_message_box.CustomMessageBoxYesNo(
-      "Are you sure to cancel the running job?",
-      "Abort running job",
-      custom_message_box.CustomMessageBoxIcons.WARNING.value,
-    )
-    tmp_msg_box.exec()
-    if tmp_msg_box.response:
-      # CAUTION: This is a quick-and-dirty way of canceling the job
-      # If this is used frequently in quick succession (multiple aborts within 1 min),
-      # the approach will lead to a Segmentation Fault (-1073741819 (0xC0000005)).
-      # The reason for this behaviour could be that the "TaskResult" object
-      # is not correctly handled and underlying C++ code (of Qt) could have a
-      # nullptr dereference.
-      tmp_cmd = ["wsl", "--terminate", model_definitions.ModelDefinitions.DISTRO_NAME]
-      subprocess.run(tmp_cmd)
-
-  def cancel_job(self) -> None:
-    """Cancels the job by shutting down the WSL2 distro."""
-    self.shutdown_wsl()
-    self.close()

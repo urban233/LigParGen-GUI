@@ -1,9 +1,12 @@
 import json
 import logging
+import multiprocessing
 import os.path
 import pathlib
 import shutil
 import subprocess
+from functools import partial
+from typing import Any
 
 import zmq
 from wsl2 import constants, utils
@@ -149,6 +152,31 @@ class Server:
     except Exception as e:
       default_logging.append_to_log_file(logger, f"An error occurred: {e}", logging.ERROR)
       return False
+
+  def worker_function(self, tmp_file: str, queue: multiprocessing.Queue, logger: Any) -> None:
+    """
+    Worker function to process a single file.
+    """
+    try:
+      default_logging.append_to_log_file(logger, f"Starting LigParGen conversion of {tmp_file} ...", logging.INFO)
+      if not self.run_ligpargen_command(pathlib.Path(tmp_file)):
+        tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} failed!"
+        default_logging.append_to_log_file(logger, tmp_msg, logging.ERROR)
+      else:
+        tmp_msg = f"LigParGen conversion of {pathlib.Path(tmp_file).name} finished."
+        default_logging.append_to_log_file(logger, tmp_msg, logging.INFO)
+
+      queue.put({
+        "msg": tmp_msg,
+        "tmp_file": tmp_file,
+        "status": "success"
+      })
+    except Exception as e:
+      queue.put({
+        "msg": f"Error processing {tmp_file}: {str(e)}",
+        "tmp_file": tmp_file,
+        "status": "error"
+      })
 
   def run_ligpargen_job(self) -> bool:
     """Runs the 'ligpargen' job.
