@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 WizardImageFile=compiler:WizClassicImage.bmp
 AppName=LigParGenGUI
-AppVersion=0.1.9
+AppVersion=0.1.10
 AppCopyright=Martin Urban, Hannah Kullik, IBCI
 AppId={{192F52C3-D86D-4735-9929-C7DF599CB354}
 DefaultDirName={commonappdata}\IBCI\LigParGenGUI

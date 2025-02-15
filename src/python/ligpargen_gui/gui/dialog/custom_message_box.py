@@ -71,6 +71,7 @@ class CustomMessageBox(QtWidgets.QDialog):
       self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint
     )
     self.setWindowTitle("Generic Window Title")
+    self.setWindowIcon(QtGui.QIcon(str(model_definitions.ModelDefinitions.LOGO_FILEPATH)))
     self.setModal(True)
 
   def closeEvent(self, event) -> None:
@@ -133,7 +134,7 @@ class CustomMessageBoxDelete(CustomMessageBox):
     )
     self.btn_right.setText("Cancel")
     self.setWindowTitle(a_window_title)
-
+    self.setWindowIcon(QtGui.QIcon(str(model_definitions.ModelDefinitions.LOGO_FILEPATH)))
     self.btn_left.clicked.connect(self.__slot_left_button)
     self.btn_right.clicked.connect(self.__slot_right_button)
 
@@ -190,6 +191,7 @@ class CustomMessageBoxOk(CustomMessageBox):
     styles_utils.set_default_button_style(self.btn_left)
     self.btn_right.hide()
     self.setWindowTitle(a_window_title)
+    self.setWindowIcon(QtGui.QIcon(str(model_definitions.ModelDefinitions.LOGO_FILEPATH)))
     self.btn_left.clicked.connect(self.__slot_left_button)
 
   def __slot_left_button(self) -> None:
@@ -237,7 +239,7 @@ class CustomMessageBoxYesNo(CustomMessageBox):
     #styles_utils.color_bottom_frame_button(self.btn_left)
     self.btn_right.setText("No")
     self.setWindowTitle(a_window_title)
-
+    self.setWindowIcon(QtGui.QIcon(str(model_definitions.ModelDefinitions.LOGO_FILEPATH)))
     self.btn_left.clicked.connect(self.__slot_left_button)
     self.btn_right.clicked.connect(self.__slot_right_button)
 

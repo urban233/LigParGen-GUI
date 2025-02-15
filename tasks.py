@@ -41,7 +41,7 @@ def build(c, rootfs=False, wsl_check=False, update=False):
         # print(f"Finished downloading {tasks_util.Constants.alma_linux_rootfs_filename}.")
       # </editor-fold>
     # Build & move PostInstallationRunner
-    # TODO: This might be removed because the Pascal of Inno Setup manages the post installation runner tasks
+    # TODO: This might be removed because the Pascal code of Inno Setup manages the post installation runner tasks
     # if post_installation_runner:
     #   tmp_cwd = tasks_util.Constants.project_root_path
     #   tmp_cmd = f"dotnet publish {tasks_util.Constants.post_installation_runner_project_path} /p:PublishProfile={tasks_util.Constants.post_installation_runner_publish_xml_filepath}"

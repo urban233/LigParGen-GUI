@@ -162,22 +162,24 @@ cython_debug/
 external/
 test_files/
 
+/assets/convert_logo_to_ico/logo-*.png
+
 # Deployment
-deployment/src/bin
-deployment/src/PostInstallationRunner.exe
-deployment/src/WslCheck.exe
-deployment/src/offline_resources/alma9-ligpargen-rootfs.tar
-deployment/podman/wsl2
-deployment/out
+/deployment/src/bin
+/deployment/src/PostInstallationRunner.exe
+/deployment/src/WslCheck.exe
+/deployment/src/offline_resources/alma9-ligpargen-rootfs.tar
+/deployment/src/offline_resources/WindowsTasks.exe
+/deployment/podman/wsl2
+/deployment/out
+/deployment/offline_resources/alma9-ligpargen-rootfs.tar
+/deployment/offline_resources/WindowsTasks.exe
 
 # C#
-src/c_sharp/.vs
-src/c_sharp/.idea
+/deployment/src/c_sharp/WindowsWrapper/WindowsCmdElevator/bin
+/deployment/src/c_sharp/WindowsWrapper/WindowsCmdElevator/obj
+/deployment/src/c_sharp/WindowsWrapper/WindowsTasks/bin
+/deployment/src/c_sharp/WindowsWrapper/WindowsTasks/obj
 
-src/c_sharp/PostInstallationRunner/bin
-src/c_sharp/PostInstallationRunner/obj
-src/c_sharp/PostInstallationRunner/Properties/PublishProfiles/*.user
-src/c_sharp/PostInstallationRunner/*.user
 
-src/c_sharp/WslCheck/bin
-src/c_sharp/WslCheck/obj
+/inno-build-release/

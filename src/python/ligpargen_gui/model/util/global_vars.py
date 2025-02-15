@@ -1,3 +1,3 @@
 """Module that stores global variables"""
-DEBUG = True
+DEBUG = False
 """Flag indicating if debug mode is on (important for CHECK macro!)"""
