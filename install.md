@@ -11,7 +11,7 @@ If you have a real-time virus scanner software installed (e.g. Avira, Kaspersky,
 
 ## Download and extract setup
 
-1. Download the _LigParGen-GUI_0.1.12_Setup.zip_. Click [here](#TODO) 
+1. Download the _LigParGen-GUI_0.1.12_Setup.zip_. Click [here](https://github.com/urban233/LigParGen-GUI/releases/download/v0.1.12/LigParGenGUI_0.1.12_Setup.exe) 
 to automatically start the download. The download will take several minutes to download depending on your internet connection.
 
 [//]: # ()
