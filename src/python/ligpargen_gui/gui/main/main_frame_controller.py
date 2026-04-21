@@ -199,6 +199,10 @@ class MainFrameController:
     Returns:
       True if the versions are different and therefore an update is available. Otherwise: False.
     """
+    # TODO: This feature needs a complete new implementation due to link sharing
+    #   restrictions of Sciebo. This would mean manually looking up if a new version
+    #   is available at least for now.
+    return False
     if model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH.exists():
       model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH.unlink()
     if not url.download_file(model_definitions.ModelDefinitions.URL_TO_REMOTE_VERSION, model_definitions.ModelDefinitions.REMOTE_VERSION_FILEPATH):

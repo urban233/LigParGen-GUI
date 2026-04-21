@@ -78,11 +78,8 @@ class BuildInnoSetup:
     pathlib.Path(self.inno_build_tmp_path).mkdir()
     if include_wsl2_distro:
       if not pathlib.Path.exists(pathlib.Path(self.inno_build_cache_path / "alma9-ligpargen-rootfs.tar")):
-        print("Downloading alma9-ligpargen-rootfs.tar ...")
-        if not automation_util.download_file("https://w-hs.sciebo.de/s/iH2wIOVBQyAbRyW/download", str(pathlib.Path(self.inno_build_cache_path / "alma9-ligpargen-rootfs.tar"))):
-          print("Unable to download alma9-ligpargen-rootfs.tar, build process exists.")
-          return
-        print("Finished downloading alma9-ligpargen-rootfs.tar.")
+        print("alma9-ligpargen-rootfs.tar not found! If you have a TAR file move it to inno-build-release/inno-cache.")
+        return
 
       if not automation_util.File.copy(
         pathlib.Path(self.inno_build_cache_path / "alma9-ligpargen-rootfs.tar"),
@@ -90,14 +87,6 @@ class BuildInnoSetup:
       ):
         print("Copying the alma9-ligpargen-rootfs.tar failed!")
         return
-    # </editor-fold>
-    # <editor-fold desc="Get pre-built WindowsTasks.exe from sciebo">
-    if not tmp_windows_tasks_exe_filepath.exists():
-      print("Downloading WindowsTasks.exe ...")
-      if not automation_util.download_file("https://w-hs.sciebo.de/s/o0JuKYP5YTaeNsr/download", str(tmp_windows_tasks_exe_filepath)):
-        print("Unable to download WindowsTasks.exe, build process exists.")
-        return
-      print("Finished downloading WindowsTasks.exe.")
     # </editor-fold>
     # <editor-fold desc="Compile Python sources to EXE file">
     if pathlib.Path(PROJECT_ROOT_DIR / "dist").exists():
@@ -128,7 +117,8 @@ class BuildInnoSetup:
     )
     # TODO: Add automated way of updating the version number project wide
     # Note: Until now there are different locations where the versions are stored
-    # (1) constants.py (2) pyproject.toml (3) version_history.json => TODO: This has to change for better maintenance!
+    # (1) constants.py (2) pyproject.toml (3) version_history.json
+    # => TODO: This has to change for better maintenance!
     automation_util.File.copy(
       pathlib.Path(PROJECT_ROOT_DIR / "version_history.json"),
       pathlib.Path(self.inno_build__internal_path / "version_history.json"),
@@ -148,7 +138,6 @@ class BuildInnoSetup:
     self.inno_build_third_party_path.mkdir(exist_ok=True)
     self.inno_build_prerequisite_path.mkdir(exist_ok=True)
     shutil.copy(tmp_vc_redist_setup_filepath, pathlib.Path(self.inno_build_third_party_path / "VC_redist.x64.exe"))
-    shutil.copy(tmp_windows_tasks_exe_filepath, pathlib.Path(self.inno_build_prerequisite_path / "WindowsTasks.exe"))
     self.inno_build_assets_path.mkdir(exist_ok=True)
     shutil.copy(tmp_pyssa_win_build_logo_filepath, pathlib.Path(self.inno_build_assets_path / "logo.ico"))
     # </editor-fold>
@@ -176,20 +165,28 @@ class BuildInnoSetup:
 # <editor-fold desc="Automation functions">
 def build_setup_exe() -> None:
   """Builds the inno setup EXE file."""
-  tmp_builder = BuildInnoSetup()
-  tmp_builder.setup_build_environment(
-    include_wsl2_distro=True,
-  )
-  tmp_builder.build(tmp_builder.inno_setup_script_filepath)
+  try:
+    tmp_builder = BuildInnoSetup()
+    tmp_builder.setup_build_environment(
+      include_wsl2_distro=True,
+    )
+    tmp_builder.build(tmp_builder.inno_setup_script_filepath)
+  except Exception as tmp_exception:
+    print(tmp_exception)
+    return
 
 
 def build_update_src_only_exe() -> None:
   """Builds the update src only inno setup EXE file."""
-  tmp_builder = BuildInnoSetup()
-  tmp_builder.setup_build_environment()
-  tmp_builder.build(
-    pathlib.Path(tmp_builder.inno_setup_script_path / "setup_only_src.iss")
-  )
+  try:
+    tmp_builder = BuildInnoSetup()
+    tmp_builder.setup_build_environment()
+    tmp_builder.build(
+      pathlib.Path(tmp_builder.inno_setup_script_path / "setup_only_src.iss")
+    )
+  except Exception as tmp_exception:
+    print(tmp_exception)
+    return
 
 
 def clean_build_setup_exe() -> None:

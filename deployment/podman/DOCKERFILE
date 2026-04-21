@@ -54,6 +54,9 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh &
 # Add conda to the PATH
 ENV PATH="/home/alma_ligpargen/miniconda/bin:$PATH"
 
+# Auto-accept Anaconda Terms of Service for non-interactive environments
+ENV CONDA_PLUGINS_AUTO_ACCEPT_TOS=true
+
 # Initialize conda and create the conda environment called py37
 RUN conda init && conda create -y -n py37 python=3.7
 

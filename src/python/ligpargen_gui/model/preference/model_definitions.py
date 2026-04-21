@@ -54,10 +54,12 @@ class ModelDefinitions:
   """The standard status bar message timeout"""
   VERSION_NUMBER = "0.1.12"  # The version number MUST be in double quotes
   """The version number of the application"""
+  # TODO: This should be removed if the version updating is finalized
   URL_TO_REMOTE_VERSION = "https://w-hs.sciebo.de/s/vTFDNkX8aA6p1cJ/download"
   """The url to the remote version file of the application"""
   REMOTE_VERSION_FILEPATH = pathlib.Path(f"{DEFAULT_SETTINGS_PATH}/remote_version.json")
   """The filepath of the remote version file after its downloaded"""
+  # TODO: This should be removed if the version updating is finalized
   URL_TO_UPDATE_SETUP = "https://w-hs.sciebo.de/s/0ZA3494SQbICAbu/download"
   """The url to the update setup file of the application"""
 

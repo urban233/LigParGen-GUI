@@ -41,7 +41,6 @@ Name: "{app}\third_party"
 
 [Files]
 ; Place any prerequisite files here, for example:
-Source: "..\..\..\inno-build-release\inno-sources\prerequisite\WindowsTasks.exe"; Flags: dontcopy;
 ; Place any regular files here, so *after* all your prerequisites.
 Source: "..\..\..\inno-build-release\inno-sources\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs;
 Source: "..\..\..\inno-build-release\inno-assets\logo.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs;
@@ -66,100 +65,11 @@ const
   (*** Customize the following to your own name. ***)
   RunOnceName = 'My Program Setup restart';
 
-  QuitMessageReboot = 'To complete the installation of WSL2 which is a prerequisite you will need to restart your computer. After restarting your computer, Setup will continue next time an administrator logs in.';
+  QuitMessageReboot = 'To complete the installation of WSL2 which is a prerequisite you will need to restart your computer. After restarting your computer, the setup will continue.';
   QuitMessageError = 'An error occurred during the WSL2 installation. Please try again.';
 
 var
   Restarted: Boolean;
-
-function InitializeSetup(): Boolean;
-begin
-  Restarted := ExpandConstant('{param:restart|0}') = '1';
-
-  if not Restarted then begin
-    Result := not RegValueExists(HKA, 'Software\Microsoft\Windows\CurrentVersion\RunOnce', RunOnceName);
-    if not Result then
-      MsgBox(QuitMessageReboot, mbError, mb_Ok);
-  end else
-    Result := True;
-end;
-
-function IsWSL2Installed(): Boolean;
-var
-  ResultCode: Integer;
-begin
-  Result := False;
-
-  ExtractTemporaryFile('WindowsTasks.exe');
-
-  if ShellExec(
-    'runas',
-    ExpandConstant('{tmp}\WindowsTasks.exe'),
-    '',
-    '',
-    SW_HIDE,  // Consider hiding the window if you don't need user interaction
-    ewWaitUntilTerminated,
-    ResultCode) then
-  begin
-    // Return True only if the exit code is 0
-    Result := (ResultCode = 0);
-  end
-  else
-  begin
-    // Show error if execution fails
-    MsgBox('Failed to launch WindowsTasks.exe with elevated privileges: ' +
-      SysErrorMessage(ResultCode), mbError, MB_OK);
-    Result := False;
-  end;
-end;
-
-function DetectAndInstallPrerequisites: Boolean;
-var
-  ResultCode: Integer;
-begin
-  Result := True;
-  if not IsWSL2Installed() then
-  begin
-    // Ask user if they want to install WSL2
-    if MsgBox('WSL2 is not installed. Do you want to install WSL2 now?' + #13#10 + 'IMPORTANT: The WSL2 will integrate into the Windows OS and be a system component that cannot be uninstalled!', mbConfirmation, MB_YESNO) = IDNO then
-    begin
-      MsgBox('WSL2 is required for this installation. Setup will now exit.', mbError, MB_OK);
-      Result := False;
-      Exit;
-    end;
-
-    // Proceed with installation if user selects Yes
-    if Exec('wsl.exe', '--install --no-distribution', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-    begin
-      if ResultCode = 0 then
-      begin
-        // Schedule reboot if needed
-        if not Restarted then
-        begin
-          RestartReplace(ParamStr(0), '');
-          Result := True; // Requires reboot
-        end
-        else
-        begin
-          // Verify after reboot
-          Result := IsWSL2Installed();
-          if not Result then
-            MsgBox('WSL2 installation did not complete successfully after reboot.', mbError, MB_OK);
-        end;
-      end
-      else
-      begin
-        MsgBox('WSL2 installation failed. Error code: ' + IntToStr(ResultCode), mbError, MB_OK);
-        Result := False;
-      end;
-    end
-    else
-    begin
-      MsgBox('Failed to start WSL2 installation.', mbError, MB_OK);
-      Result := False;
-    end;
-  end;
-end;
 
 function Quote(const S: String): String;
 begin
@@ -191,27 +101,100 @@ begin
   RunOnceData := AddParam(RunOnceData, 'COMPONENTS', Quote(WizardSelectedComponents(False)));
   RunOnceData := AddParam(RunOnceData, 'TASKS', Quote(WizardSelectedTasks(False)));
 
-  (*** Place any custom user selection you want to remember below. ***)
+  RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\RunOnce', RunOnceName, RunOnceData);
+end;
 
-  //<your code here>
+function IsVirtualMachinePlatformEnabled: Boolean;
+var
+  Command: string;
+  Output: Integer;
+  FilePath: string;
+begin
+  Command := '"$vm = Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform | Select-Object -ExpandProperty State; $fileName = ''vm_platform_'' + $vm + ''.txt''; Out-File -FilePath (Join-Path ' + ExpandConstant('{tmp}') + ' $fileName);"'
+  ShellExec('runas', 'powershell.exe', Command, '', SW_HIDE, ewWaitUntilTerminated, Output);
 
-  RegWriteStringValue(HKA, 'Software\Microsoft\Windows\CurrentVersion\RunOnce', RunOnceName, RunOnceData);
+  FilePath := ExpandConstant('{tmp}') + '\vm_platform_Enabled.txt';
+  Result := FileExists(FilePath);
+end;
+
+function DetectAndInstallPrerequisites: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := True;
+
+  if not IsVirtualMachinePlatformEnabled() then
+  begin
+    if MsgBox('WSL2 is not installed. Do you want to install WSL2 now?' + #13#10 + 'IMPORTANT: The WSL2 will integrate into the Windows OS and be a system component that cannot be uninstalled!', mbConfirmation, MB_YESNO) = IDNO then
+    begin
+      MsgBox('WSL2 is required for this installation. Setup will now exit.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+
+    if ShellExec('runas', 'powershell.exe', 'wsl --install; Out-File -FilePath (Join-Path ' + ExpandConstant('{tmp}') + ' ''wsl2_just_installed.txt'');', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    begin
+      if ResultCode = 0 then
+      begin
+        if not Restarted then
+        begin
+          // Create RunOnce entry and request restart
+          CreateRunOnceEntry;
+          Result := True;
+        end
+        else
+        begin
+          Result := IsVirtualMachinePlatformEnabled();
+          if not Result then
+            MsgBox('WSL2 installation did not complete successfully after reboot.', mbError, MB_OK);
+        end;
+      end
+      else
+      begin
+        MsgBox('WSL2 installation failed. Error code: ' + IntToStr(ResultCode), mbError, MB_OK);
+        Result := False;
+      end;
+    end
+    else
+    begin
+      MsgBox('Failed to start WSL2 installation.', mbError, MB_OK);
+      Result := False;
+    end;
+  end;
+end;
+
+function InitializeSetup(): Boolean;
+begin
+  Restarted := ExpandConstant('{param:restart|0}') = '1';
+
+  if not Restarted then begin
+    Result := not (RegValueExists(HKCU, 'Software\Microsoft\Windows\CurrentVersion\RunOnce', RunOnceName));
+    if not Result then
+      MsgBox(QuitMessageReboot, mbError, mb_Ok);
+  end else
+    Result := True;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
-  ChecksumBefore, ChecksumAfter: String;
+  FilePath: string;
+
 begin
-  ChecksumBefore := MakePendingFileRenameOperationsChecksum;
-  if DetectAndInstallPrerequisites then begin
-    ChecksumAfter := MakePendingFileRenameOperationsChecksum;
-    if ChecksumBefore <> ChecksumAfter then begin
-      CreateRunOnceEntry;
-      NeedsRestart := True;
-      Result := QuitMessageReboot;
-    end;
-  end else
+  Result := '';
+
+  if not DetectAndInstallPrerequisites then
+  begin
     Result := QuitMessageError;
+    Exit;
+  end;
+
+  // If we're not restarted and WSL2 was just installed, we need to restart
+  FilePath := ExpandConstant('{tmp}') + '\wsl2_just_installed.txt';
+  if not Restarted and FileExists(FilePath) then
+  begin
+    NeedsRestart := True;
+    Result := QuitMessageReboot;
+  end;
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
